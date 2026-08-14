@@ -1,0 +1,1939 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Michael · AI 全栈开发</title>
+<meta name="description" content="张海源（Michael）的个人网站 —— AI 全栈开发实习生。Vue3 + Spring Boot 全栈开发，LangChain / RAG / AI Agent 实践者。"/>
+<link rel="icon" type="image/png" href="avatar1.png"/>
+<!--
+  ============================================================
+  Michael 张海源 · 个人网站
+  单文件实现：内联 CSS + JS，零外部依赖，双击即可打开
+  结构参考 qidi.kai.com（单页 Tab 切换 + 中英 i18n）
+  视觉：深色科技风 + 篮球橙点缀（球场夜幕 · 全栈新秀）
+
+  待补充（TODO）：
+  1. 头像：本目录 avatar.png 已就位，自动显示 ✓
+  2. GitHub 链接：已填 james-kobe-curry/Michael.Kai.com ✓
+  3. 篮球个人信息：搜索 TODO-BASKETBALL 填写（不填则自动隐藏球员档案卡）
+  ============================================================
+-->
+<style>
+/* ================= 设计系统 ================= */
+:root{
+  --bg:#060b14;              /* 球馆夜幕深蓝黑 */
+  --text:#e2e8f0;
+  --muted:#7c8aa0;
+  --accent:#00c2ff;          /* 科技青 */
+  --accent2:#a855f7;         /* 科技紫 */
+  --ball:#f97316;            /* 篮球橙（篮球元素专用） */
+  --ball-gold:#e8a33d;
+  --card:rgba(15,23,42,.7);
+  --border:rgba(56,189,248,.1);
+  --court-line:rgba(255,255,255,.15);
+  --gradient:linear-gradient(135deg,#00c2ff,#a855f7,#22d3ee);
+  --ball-gradient:linear-gradient(135deg,#f97316,#e8a33d);
+  --mono:'Consolas','SF Mono','JetBrains Mono','Cascadia Code',monospace;
+}
+*{box-sizing:border-box;margin:0}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;
+  overflow-x:hidden;line-height:1.7;-webkit-font-smoothing:antialiased;
+}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+
+/* ================= 背景层 ================= */
+#bg-grid{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.06;
+  background-image:linear-gradient(rgba(56,189,248,.35) 1px,transparent 1px),linear-gradient(90deg,rgba(56,189,248,.35) 1px,transparent 1px);
+  background-size:48px 48px}
+#bg-court{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+#bg-court svg{width:100%;height:100%;display:block}
+#bg-court svg g{stroke:var(--court-line)}
+.orb{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0;opacity:.13}
+.orb1{width:500px;height:500px;background:#00c2ff;top:-150px;right:-100px;animation:float 8s ease-in-out infinite}
+.orb2{width:420px;height:420px;background:#a855f7;bottom:-120px;left:-120px;animation:float 10s ease-in-out infinite .5s}
+.orb3{width:260px;height:260px;background:#f97316;top:45%;left:55%;opacity:.07;animation:float 12s ease-in-out infinite 1s}
+@keyframes float{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,-30px)}}
+
+/* ================= 导航 ================= */
+nav{position:fixed;top:0;width:100%;z-index:50;background:rgba(6,11,20,.8);backdrop-filter:blur(20px);border-bottom:1px solid rgba(56,189,248,.08)}
+.nav-inner{max-width:1080px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:16px}
+.nav-brand{display:flex;align-items:baseline;gap:8px;font-weight:800;font-size:1.02rem;white-space:nowrap}
+.nav-brand .ball-ico{display:inline-block;animation:bounce 1.8s ease-in-out infinite;align-self:center}
+.nav-brand .brand-michael{font-size:1.1rem;font-weight:900;font-family:var(--mono);letter-spacing:.04em;color:var(--ball-gold);text-shadow:0 0 14px rgba(249,115,22,.45)}
+.nav-brand .brand-zh{font-size:.78rem;font-weight:600;color:var(--muted);letter-spacing:.08em}
+.nav-links{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+.nav-links a{padding:6px 12px;border-radius:8px;font-size:.85rem;color:var(--muted);transition:all .25s;cursor:pointer;border:1px solid transparent}
+.nav-links a:hover{color:var(--text);background:rgba(56,189,248,.06)}
+.nav-links a.active{color:var(--accent);background:rgba(0,194,255,.08);border-color:rgba(56,189,248,.2)}
+.nav-links a.active::after{content:'●';font-size:.45rem;margin-left:5px;color:var(--ball);vertical-align:middle;animation:pulse 1.6s infinite}
+/* 导航小按钮（语言 / 音效）：玻璃质感高级按钮 */
+.lang-btn,.snd-btn{position:relative;overflow:hidden;width:44px;height:34px;border-radius:10px;font-size:.8rem;font-weight:700;cursor:pointer;transition:all .25s;font-family:inherit;color:var(--accent);
+  background:linear-gradient(145deg,rgba(0,194,255,.15),rgba(168,85,247,.07));
+  border:1px solid rgba(56,189,248,.35);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 3px 12px rgba(0,194,255,.12)}
+.lang-btn::before,.snd-btn::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 18%,rgba(255,255,255,.18),transparent 55%);pointer-events:none}
+.lang-btn:hover,.snd-btn:hover{transform:translateY(-1px);border-color:rgba(56,189,248,.6);box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 5px 18px rgba(0,194,255,.28);background:linear-gradient(145deg,rgba(0,194,255,.24),rgba(168,85,247,.12))}
+.lang-btn:active,.snd-btn:active{transform:translateY(0) scale(.94)}
+/* 音效按钮：篮球橙变体 */
+.snd-btn{color:var(--ball);background:linear-gradient(145deg,rgba(249,115,22,.18),rgba(232,163,61,.07));border-color:rgba(249,115,22,.4);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 3px 12px rgba(249,115,22,.12)}
+.snd-btn:hover{background:linear-gradient(145deg,rgba(249,115,22,.28),rgba(232,163,61,.12));border-color:rgba(249,115,22,.65);box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 5px 18px rgba(249,115,22,.28)}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ================= 计分板 ================= */
+#scoreboard{position:fixed;top:74px;right:20px;z-index:49;display:flex;flex-direction:column;align-items:flex-end;gap:3px;pointer-events:none}
+#scoreboard .sb-label{font-size:1.4rem;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;text-shadow:0 0 12px rgba(0,194,255,.25)}
+#scoreboard .sb-row{position:relative}
+#scoreboard .sb-score{font-family:var(--mono);font-size:1.6rem;font-weight:900;color:var(--ball);background:rgba(6,11,20,.85);border:1px solid rgba(249,115,22,.3);border-radius:10px;padding:2px 14px;box-shadow:0 0 22px rgba(249,115,22,.22);line-height:1.3}
+#scoreboard .sb-plus{position:absolute;right:calc(100% + 10px);top:9px;font-family:var(--mono);font-weight:900;font-size:1rem;color:var(--ball);opacity:0;pointer-events:none;padding:3px 11px;border-radius:999px;background:rgba(6,11,20,.92);border:1px solid rgba(249,115,22,.5);box-shadow:0 0 14px rgba(249,115,22,.35);text-shadow:0 0 10px rgba(249,115,22,.55);white-space:nowrap}
+#scoreboard .sb-plus.show{animation:plusFloat .95s ease}
+@keyframes plusFloat{0%{opacity:0;transform:translateY(10px) scale(.5) rotate(-8deg)}18%{opacity:1;transform:translateY(0) scale(1.15) rotate(3deg)}32%{transform:scale(1) rotate(0)}72%{opacity:1}100%{opacity:0;transform:translateY(-26px) rotate(-4deg)}}
+#scoreboard .sb-score.pop{animation:sbPop .45s ease}
+@keyframes sbPop{0%{transform:scale(1)}35%{transform:scale(1.35);color:var(--ball-gold)}100%{transform:scale(1)}}
+
+/* ================= 页面 ================= */
+.page{display:none;min-height:100vh;position:relative;z-index:1}
+.page.active{display:block;animation:pageIn .45s ease}
+@keyframes pageIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.section{max-width:960px;margin:0 auto;padding:110px 24px 70px}
+.sec-title{font-size:1.5rem;font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:12px}
+.sec-title::before{content:'';width:3px;height:22px;background:var(--gradient);border-radius:2px;box-shadow:0 0 12px rgba(0,194,255,.5)}
+.sec-sub{font-size:.8rem;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;margin-bottom:32px;position:relative;padding-bottom:14px}
+.sec-sub::after{content:'';position:absolute;left:0;bottom:0;width:46px;height:2px;background:var(--ball-gradient);border-radius:2px;opacity:.7;box-shadow:0 0 8px rgba(249,115,22,.4)}
+
+/* ================= 首页 ================= */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:110px 24px 40px;position:relative}
+.hero .badge{display:inline-block;padding:6px 16px;border-radius:20px;border:1px solid rgba(249,115,22,.35);font-size:.72rem;color:var(--ball);letter-spacing:2px;margin-bottom:22px;position:relative;overflow:hidden;
+  background:linear-gradient(145deg,rgba(249,115,22,.14),rgba(232,163,61,.05));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 4px 14px rgba(249,115,22,.15)}
+.hero .badge::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 20%,rgba(255,255,255,.2),transparent 55%);pointer-events:none}
+.hero h1{font-size:clamp(2.6rem,6vw,4.6rem);font-weight:900;margin-bottom:14px;line-height:1.12}
+.gradient-text{background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero .tagline{font-size:1.05rem;color:var(--muted);max-width:620px;margin:0 auto 34px;line-height:1.95;min-height:3.9em;text-wrap:pretty}
+.tl-em{display:inline-block;margin-top:8px;font-size:1.16em;font-weight:800;color:#f1f5f9}
+.typewriter-cursor{display:inline-block;width:2px;height:1.1em;background:var(--ball);vertical-align:-2px;margin-left:3px;animation:blink 1s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.tech-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:42px;max-width:640px}
+.tech-tags span{padding:5px 14px;border-radius:6px;font-size:.72rem;letter-spacing:1px;color:var(--muted);cursor:default;transition:all .25s;
+  background:linear-gradient(145deg,rgba(56,189,248,.12),rgba(168,85,247,.06));
+  border:1px solid rgba(56,189,248,.15);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+.tech-tags span:hover{transform:translateY(-2px);color:var(--text);border-color:rgba(56,189,248,.4);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 6px 16px rgba(0,194,255,.18)}
+.tech-tags span:nth-child(3n){border-color:rgba(249,115,22,.25);color:var(--ball-gold);background:linear-gradient(145deg,rgba(249,115,22,.12),rgba(232,163,61,.05));box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+.tech-tags span:nth-child(3n):hover{border-color:rgba(249,115,22,.5);color:var(--ball-gold);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 6px 16px rgba(249,115,22,.2)}
+.cta-row{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:56px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 30px;border-radius:14px;font-size:.92rem;font-weight:800;letter-spacing:.04em;cursor:pointer;transition:all .3s;border:1px solid transparent;font-family:inherit;line-height:1;min-width:150px;position:relative;overflow:hidden}
+.btn::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 28% 12%,rgba(255,255,255,.2),transparent 55%);pointer-events:none;opacity:.9}
+.btn svg{width:16px;height:16px;flex-shrink:0;position:relative}
+.btn span{position:relative}
+.btn:active{transform:translateY(0) scale(.97)}
+.btn-primary{background:var(--gradient);color:#ffffff;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 6px 26px rgba(0,194,255,.3);text-shadow:0 1px 3px rgba(4,18,31,.35)}
+.btn-primary svg{transition:transform .3s}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 12px 38px rgba(0,194,255,.45)}
+.btn-primary:hover svg{transform:translateX(4px)}
+.btn-ghost{border-color:rgba(249,115,22,.5);color:var(--ball);background:linear-gradient(145deg,rgba(249,115,22,.12),rgba(232,163,61,.05));box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
+.btn-ghost:hover{transform:translateY(-2px);background:linear-gradient(145deg,rgba(249,115,22,.2),rgba(232,163,61,.09));border-color:rgba(249,115,22,.8);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 8px 30px rgba(249,115,22,.25)}
+
+/* 投篮彩蛋 */
+.shot-stage{position:relative;height:200px;width:min(520px,86vw);margin:0 auto 20px}
+#hoop{position:absolute;top:0;right:0;z-index:3;width:150px;height:180px;transition:transform .3s;filter:drop-shadow(0 10px 24px rgba(2,8,20,.45))}
+#hoop svg{width:100%;height:100%;display:block}
+#hoopFront{position:absolute;top:0;right:0;width:150px;height:180px;z-index:4;pointer-events:none}
+#hoopFront svg{width:100%;height:100%;display:block}
+#hoop.swing,#hoopFront.swing{transform-origin:top;animation:hoopSwing .5s ease}
+@keyframes hoopSwing{0%,100%{transform:skewX(0)}30%{transform:skewX(10deg)}60%{transform:skewX(-8deg)}}
+#hoop.rattle,#hoopFront.rattle{animation:hoopShake .4s ease}
+#hoopFront.swish .net{transform-box:fill-box;transform-origin:50% 40%;animation:netBulge .55s ease}
+@keyframes netBulge{0%,100%{transform:scaleY(1)}35%{transform:scaleY(1.18)}52%{transform:scaleY(0.98)}}
+#ball{position:absolute;bottom:14px;left:18%;width:64px;height:64px;cursor:grab;z-index:4;filter:drop-shadow(0 8px 16px rgba(249,115,22,.35));transition:filter .3s;touch-action:none;user-select:none;-webkit-user-select:none}
+#ball img{width:100%;height:100%;display:block;object-fit:contain;pointer-events:none}
+#ball:hover{filter:drop-shadow(0 10px 22px rgba(249,115,22,.55))}
+#ball:focus-visible{outline:2px solid var(--ball);outline-offset:4px;border-radius:50%}
+#ball.shooting{pointer-events:none;transition:none}
+#ball.dragging{cursor:grabbing;filter:drop-shadow(0 14px 26px rgba(249,115,22,.6))}
+@keyframes hoopShake{0%,100%{transform:translateX(0)}25%{transform:translateX(4px)}50%{transform:translateX(-4px)}75%{transform:translateX(3px)}}
+/* ================= 投篮播报特效 ================= */
+.shot-callout{position:fixed;left:50%;top:24%;width:200px;height:100px;transform:translate(-50%,-50%);z-index:62;pointer-events:none;display:none}
+.shot-callout.show{display:block}
+.shot-callout .burst{position:absolute;inset:0;width:100%;height:100%;animation:burstSpin 3s linear infinite;filter:drop-shadow(0 0 18px currentColor)}
+.shot-callout .burst poly{fill:currentColor}
+.shot-callout .callout-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:900;letter-spacing:.05em;line-height:1.08;text-align:center;animation:calloutIn .5s cubic-bezier(.34,1.56,.64,1) both;white-space:normal;padding:0 10px}
+.shot-callout.missed{color:#f87171}
+.shot-callout.missed .callout-text{color:#ffffff;text-shadow:0 0 10px rgba(0,0,0,.55),0 2px 14px rgba(127,29,29,.85)}
+.shot-callout.made2{color:#22d3ee}
+.shot-callout.made2 .callout-text{color:#ffffff;text-shadow:0 0 10px rgba(0,0,0,.5),0 2px 16px rgba(8,145,178,.9)}
+.shot-callout.made3{color:#fbbf24}
+.shot-callout.made3 .callout-text{font-size:1.95rem;color:#ffffff;text-shadow:0 0 10px rgba(0,0,0,.45),0 0 20px rgba(251,191,36,.95),0 2px 14px rgba(194,65,12,.8)}
+@keyframes burstSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes calloutIn{0%{transform:scale(0);opacity:0}60%{transform:scale(1.18);opacity:1}100%{transform:scale(1)}}
+.particle{position:fixed;z-index:62;border-radius:50%;pointer-events:none;box-shadow:0 0 8px currentColor}
+.particle.sq{border-radius:2px}
+#flash{position:fixed;inset:0;z-index:63;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.5),rgba(251,191,36,.22) 40%,transparent 72%)}
+#flash.go{animation:flashGo .45s ease}
+@keyframes flashGo{0%{opacity:1}100%{opacity:0}}
+.shot-hint{font-size:.82rem;color:var(--muted);letter-spacing:.12em;opacity:.85}
+.shot-hint b{color:var(--ball)}
+
+/* 计分板统计行 */
+.scoreline{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;max-width:720px;margin:0 auto}
+.stat{background:rgba(6,11,20,.8);border:1px solid rgba(249,115,22,.18);border-radius:14px;padding:18px 12px;text-align:center;position:relative;overflow:hidden;backdrop-filter:blur(10px);transition:all .3s;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--ball-gradient);opacity:.7;box-shadow:0 0 10px rgba(249,115,22,.45)}
+.stat::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 15%,rgba(255,255,255,.06),transparent 55%);pointer-events:none}
+.stat:hover{transform:translateY(-3px);border-color:rgba(249,115,22,.4);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 10px 30px rgba(249,115,22,.15)}
+.stat .num{font-family:var(--mono);font-size:2.4rem;font-weight:900;color:var(--ball);line-height:1.1;text-shadow:0 0 24px rgba(249,115,22,.4)}
+.stat .lbl{font-size:.7rem;color:var(--muted);letter-spacing:.18em;margin-top:6px;text-transform:uppercase}
+
+/* 跑马灯 */
+.marquee-wrap{background:rgba(15,23,42,.5);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:11px 0;overflow:hidden;position:relative;z-index:1}
+.marquee{display:flex;gap:34px;animation:scroll 32s linear infinite;white-space:nowrap;font-size:.78rem;color:var(--muted);width:max-content;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
+.marquee span{display:inline-flex;align-items:center;gap:34px}
+.marquee .dot{color:var(--ball);font-size:.6rem}
+@keyframes scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* ================= 卡片通用 ================= */
+.card{background:var(--card);border-radius:14px;border:1px solid var(--border);padding:24px;transition:all .3s;backdrop-filter:blur(10px);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.card:hover{border-color:rgba(56,189,248,.25);box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 8px 40px rgba(0,194,255,.09);transform:translateY(-2px)}
+.card h3{font-size:.95rem;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+
+/* ================= 关于我 ================= */
+.name-michael{font-size:1.75rem;font-weight:900;letter-spacing:.02em;font-family:var(--mono);color:#e8a33d;line-height:1.1}
+@supports ((-webkit-background-clip:text) or (background-clip:text)){
+  .name-michael{background:var(--ball-gradient);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+}
+.name-zh{font-size:1.05rem;font-weight:800;color:var(--text);letter-spacing:.08em}
+.profile-row{display:grid;grid-template-columns:220px 1fr;gap:26px;align-items:start}
+.avatar-wrap{width:200px;height:250px;border-radius:24px;overflow:hidden;border:2px solid rgba(249,115,22,.3);background:rgba(15,23,42,.8);display:flex;align-items:center;justify-content:center;transition:all .3s;
+  box-shadow:0 0 0 2px rgba(249,115,22,.25),0 0 0 5px rgba(0,194,255,.08),0 12px 44px rgba(249,115,22,.16)}
+.avatar-wrap:hover{transform:translateY(-3px);box-shadow:0 0 0 2px rgba(249,115,22,.45),0 0 0 5px rgba(0,194,255,.14),0 18px 52px rgba(249,115,22,.28)}
+.avatar-wrap img{width:86%;height:90%;object-fit:cover;border-radius:16px}
+.avatar-fallback{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;gap:8px}
+.avatar-fallback .mono{font-size:4rem;font-weight:900;background:var(--ball-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.avatar-fallback .tip{font-size:.66rem;color:var(--muted);padding:0 16px;text-align:center;line-height:1.5}
+.about-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:22px}
+.kv{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{padding:4px 13px;border-radius:6px;font-size:.74rem;border:1px solid rgba(56,189,248,.15);background:linear-gradient(145deg,rgba(56,189,248,.1),rgba(168,85,247,.05));color:var(--muted);transition:all .25s;cursor:default;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.chip:hover{transform:translateY(-1px);border-color:rgba(56,189,248,.4);color:var(--text)}
+.chip.ball{border-color:rgba(249,115,22,.25);color:var(--ball-gold);background:linear-gradient(145deg,rgba(249,115,22,.12),rgba(232,163,61,.05))}
+.chip.ball:hover{border-color:rgba(249,115,22,.5);color:var(--ball-gold)}
+.meta-line{display:flex;gap:18px;flex-wrap:wrap;font-size:.78rem;color:var(--muted);margin-top:10px}
+
+/* ================= 技能 ================= */
+.skills-layout{display:grid;grid-template-columns:340px 1fr;gap:26px;align-items:start}
+#radarBox{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;backdrop-filter:blur(10px);position:relative}
+#radarBox svg{width:100%;height:auto;display:block}
+.radar-tip{position:absolute;z-index:10;padding:6px 12px;border-radius:8px;background:rgba(6,11,20,.92);border:1px solid rgba(249,115,22,.5);color:var(--ball);font-family:var(--mono);font-size:.8rem;font-weight:700;pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .18s,transform .18s;white-space:nowrap;box-shadow:0 6px 20px rgba(2,8,20,.5)}
+.radar-tip.show{opacity:1;transform:none}
+.radar-tip b{color:var(--text);font-weight:700;margin-right:6px}
+.radar-pt{transition:r .15s ease,fill .15s ease}
+.radar-pt.on{r:5.5;fill:#fde68a;filter:drop-shadow(0 0 6px rgba(249,115,22,.8))}
+.radar-hover{cursor:pointer}
+.radar-cap{text-align:center;font-size:.7rem;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;margin-top:8px}
+.skill-cats{display:grid;gap:16px}
+.skill-cat .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.skill-cat .tags span{padding:5px 13px;border-radius:7px;font-size:.76rem;background:rgba(56,189,248,.07);border:1px solid rgba(56,189,248,.14);color:var(--text);transition:all .25s;cursor:default}
+.skill-cat .tags span:hover{border-color:var(--ball);color:var(--ball-gold);transform:translateY(-2px);box-shadow:0 6px 18px rgba(249,115,22,.12)}
+.skill-cat h3{color:var(--accent)}
+.skill-cat.purple h3{color:var(--accent2)}
+.skill-cat.ball h3{color:var(--ball)}
+/* 技能分类小图标：玻璃容器（继承标题色的描边图标） */
+.h3-ico{width:30px;height:30px;flex-shrink:0;border-radius:8px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;
+  background:linear-gradient(145deg,rgba(0,194,255,.16),rgba(168,85,247,.07));border:1px solid rgba(56,189,248,.3);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 2px 8px rgba(0,194,255,.12)}
+.h3-ico::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 32% 22%,rgba(255,255,255,.18),transparent 55%);pointer-events:none}
+.h3-ico svg{width:15px;height:15px;display:block}
+.skill-cat.purple .h3-ico{background:linear-gradient(145deg,rgba(168,85,247,.18),rgba(0,194,255,.07));border-color:rgba(168,85,247,.4);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 2px 8px rgba(168,85,247,.15)}
+.skill-cat.ball .h3-ico{background:linear-gradient(145deg,rgba(249,115,22,.2),rgba(232,163,61,.07));border-color:rgba(249,115,22,.4);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 2px 8px rgba(249,115,22,.14)}
+
+/* ================= 项目（时间线） ================= */
+.timeline{position:relative;padding-left:34px}
+.timeline::before{content:'';position:absolute;left:11px;top:6px;bottom:6px;width:2px;background:linear-gradient(var(--ball),var(--accent),var(--accent2));border-radius:2px;opacity:.5}
+.tl-item{position:relative;margin-bottom:22px}
+.tl-item:last-child{margin-bottom:0}
+.tl-dot{position:absolute;left:-34px;top:26px;width:24px;height:24px;border-radius:50%;background:var(--card);border:2px solid var(--ball);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:900;color:var(--ball);font-family:var(--mono);box-shadow:0 0 14px rgba(249,115,22,.3);transition:all .3s}
+.tl-item:hover .tl-dot{transform:scale(1.18);box-shadow:0 0 22px rgba(249,115,22,.6)}
+.tl-dot.two{border-color:var(--accent);color:var(--accent);box-shadow:0 0 14px rgba(0,194,255,.3)}
+.tl-dot.three{border-color:var(--accent2);color:var(--accent2);box-shadow:0 0 14px rgba(168,85,247,.3)}
+.tl-dot.four{border-color:#34d399;color:#34d399;box-shadow:0 0 14px rgba(52,211,153,.3)}
+.tl-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;margin-bottom:6px}
+.tl-title{font-size:1.08rem;font-weight:800}
+.tl-period{font-family:var(--mono);font-size:.74rem;color:var(--ball);letter-spacing:.06em}
+.tl-tech{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 12px}
+.tl-tech span{font-size:.68rem;padding:3px 10px;border-radius:5px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.14);color:var(--muted);font-family:var(--mono);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.tl-tech span:first-child{border-color:rgba(249,115,22,.3);color:var(--ball-gold);background:rgba(249,115,22,.07)}
+.tl-high{list-style:none;padding:0}
+.tl-high li{padding-left:18px;position:relative;font-size:.83rem;color:var(--muted);margin-bottom:6px;line-height:1.7}
+.tl-high li::before{content:'🏀';position:absolute;left:0;top:1px;font-size:.6rem;opacity:.9}
+
+/* ================= 荣誉 ================= */
+.trophy-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.trophy{display:flex;gap:14px;align-items:flex-start}
+.trophy .cup{width:100%;height:100%;display:block}
+.trophy .t-name{font-size:.88rem;font-weight:800;line-height:1.5}
+.trophy .t-desc{font-size:.74rem;color:var(--muted);margin-top:4px;line-height:1.6}
+.trophy.gold{border-left:3px solid var(--ball-gold)}
+.trophy.silver{border-left:3px solid #cbd5e1}
+.trophy.bronze{border-left:3px solid #d97706}
+
+/* ================= 奖杯图标容器（与联系页图标同款高级质感） ================= */
+.trophy .cup-box{width:58px;height:58px;flex-shrink:0;border-radius:15px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:12px;
+  background:linear-gradient(145deg,rgba(0,194,255,.14),rgba(168,85,247,.07));
+  border:1px solid rgba(56,189,248,.28);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 4px 16px rgba(0,194,255,.1);
+  transition:transform .3s ease,box-shadow .3s ease,border-color .3s ease}
+.trophy .cup-box::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 32% 22%,rgba(255,255,255,.15),transparent 55%);pointer-events:none}
+.trophy .cup-box svg{width:100%;height:100%;display:block}
+.trophy:hover .cup-box{transform:scale(1.08) rotate(-3deg);border-color:rgba(56,189,248,.55);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 6px 22px rgba(0,194,255,.28)}
+.trophy.gold .cup-box{background:linear-gradient(145deg,rgba(232,163,61,.2),rgba(249,115,22,.07));border-color:rgba(232,163,61,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 4px 16px rgba(232,163,61,.14)}
+.trophy.gold:hover .cup-box{border-color:rgba(232,163,61,.65);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 6px 22px rgba(232,163,61,.3)}
+.trophy.silver .cup-box{background:linear-gradient(145deg,rgba(203,213,225,.18),rgba(148,163,184,.07));border-color:rgba(203,213,225,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 4px 16px rgba(203,213,225,.12)}
+.trophy.silver:hover .cup-box{border-color:rgba(203,213,225,.6);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 6px 22px rgba(203,213,225,.26)}
+.trophy.bronze .cup-box{background:linear-gradient(145deg,rgba(217,119,6,.2),rgba(146,64,14,.07));border-color:rgba(217,119,6,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 4px 16px rgba(217,119,6,.14)}
+.trophy.bronze:hover .cup-box{border-color:rgba(217,119,6,.6);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 6px 22px rgba(217,119,6,.28)}
+.trophy.ball .cup-box{background:linear-gradient(145deg,rgba(249,115,22,.2),rgba(232,163,61,.07));border-color:rgba(249,115,22,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 4px 16px rgba(249,115,22,.14)}
+.trophy.ball:hover .cup-box{border-color:rgba(249,115,22,.65);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 6px 22px rgba(249,115,22,.3)}
+
+/* ================= 联系 ================= */
+.contact-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-bottom:26px}
+.contact-card{display:flex;align-items:center;gap:14px}
+.contact-card .c-ico{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;overflow:hidden;
+  background:linear-gradient(145deg,rgba(0,194,255,.16),rgba(168,85,247,.08));
+  border:1px solid rgba(56,189,248,.3);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 4px 18px rgba(0,194,255,.12);
+  transition:transform .3s ease,box-shadow .3s ease,border-color .3s ease}
+.contact-card .c-ico svg{width:24px;height:24px;display:block}
+.contact-card .c-ico::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 32% 22%,rgba(255,255,255,.16),transparent 55%);pointer-events:none}
+.contact-card:hover .c-ico{transform:scale(1.08) rotate(-3deg);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 6px 24px rgba(0,194,255,.3);border-color:rgba(56,189,248,.55)}
+.contact-card.ball .c-ico{background:linear-gradient(145deg,rgba(249,115,22,.2),rgba(232,163,61,.08));border-color:rgba(249,115,22,.4);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 4px 18px rgba(249,115,22,.14)}
+.contact-card.ball:hover .c-ico{box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 6px 24px rgba(249,115,22,.32);border-color:rgba(249,115,22,.7)}
+.contact-card .c-lbl{font-size:.68rem;color:var(--muted);letter-spacing:.14em;text-transform:uppercase}
+.contact-card .c-val{font-size:.95rem;font-weight:700;word-break:break-all}
+.contact-card .c-val a:hover{color:var(--ball)}
+.recruit{text-align:center;padding:40px 24px;border:1px dashed rgba(249,115,22,.35);border-radius:16px;background:rgba(249,115,22,.04)}
+.recruit h3{font-size:1.875rem;font-weight:900;margin-bottom:10px}
+.recruit p{font-size:1.275rem;color:var(--muted);margin-bottom:22px;line-height:1.7}
+
+/* ================= 大字签名 Michael ================= */
+.big-word-wrap{position:relative;margin-top:40px;text-align:center}
+.big-word{position:relative;font-family:var(--mono);font-weight:900;font-size:clamp(3.2rem,13vw,8.5rem);line-height:1.05;letter-spacing:.05em;user-select:none;cursor:default;color:#22d3ee}
+/* 渐变文字 + 流光（不支持 background-clip:text 时回退为纯青色） */
+@supports ((-webkit-background-clip:text) or (background-clip:text)){
+  .big-word{background:linear-gradient(115deg,#00c2ff 0%,#a855f7 42%,#f97316 78%,#e8a33d 100%);background-size:220% 100%;
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    animation:wordShine 7s linear infinite}
+}
+@keyframes wordShine{0%{background-position:0% 50%}100%{background-position:220% 50%}}
+/* 辉光层：模糊青色衬底（渐变文字自身不加 filter，避免 Chromium 下 clip 失效） */
+.big-word-glow{position:absolute;inset:0;font-family:var(--mono);font-weight:900;font-size:clamp(3.2rem,13vw,8.5rem);line-height:1.05;letter-spacing:.05em;color:rgba(0,194,255,.45);filter:blur(16px);pointer-events:none;user-select:none}
+
+/* ================= 页脚 ================= */
+footer{border-top:1px solid rgba(56,189,248,.08);padding:26px 24px;text-align:center;font-size:.72rem;color:var(--muted);letter-spacing:.1em;position:relative;z-index:1}
+footer .ft-m{font-size:.82rem;color:var(--ball-gold);font-weight:800;letter-spacing:.08em;text-shadow:0 0 10px rgba(249,115,22,.35)}
+footer .ft-z{color:var(--text)}
+footer .ball{display:inline-block;animation:bounce 1.8s infinite}
+
+/* ================= 主题滚动条 ================= */
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:#0a1120}
+::-webkit-scrollbar-thumb{background:#3d4856;border-radius:6px;border:2px solid #0a1120}
+::-webkit-scrollbar-thumb:hover{background:#576374}
+html{scrollbar-width:thin;scrollbar-color:#3d4856 #0a1120}
+
+/* ================= 导航滑动指示器 + 音效开关 ================= */
+.nav-indicator{position:absolute;bottom:0;left:0;height:3px;width:0;background:var(--ball-gradient);border-radius:3px 3px 0 0;box-shadow:0 0 12px rgba(249,115,22,.65);transition:left .3s cubic-bezier(.22,1,.36,1),width .3s cubic-bezier(.22,1,.36,1)}
+.snd-btn{width:44px;height:34px}
+
+/* 导航最右侧：头像（固定在屏幕右缘，点击进入关于我） */
+.nav-avatar{position:absolute;top:50%;right:18px;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;overflow:hidden;display:block;
+  border:2px solid rgba(249,115,22,.55);
+  box-shadow:0 0 0 2px rgba(0,194,255,.15),0 0 14px rgba(249,115,22,.4);
+  transition:transform .3s,border-color .3s,box-shadow .3s}
+.nav-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.nav-avatar:hover{transform:translateY(-50%) scale(1.08);border-color:rgba(249,115,22,.9);box-shadow:0 0 0 2px rgba(0,194,255,.3),0 0 20px rgba(249,115,22,.6)}
+@media(max-width:640px){
+  .nav-avatar{position:static;transform:none;width:36px;height:36px;margin-left:2px}
+  .nav-avatar:hover{transform:scale(1.08)}
+}
+
+/* ================= 阅读进度条 ================= */
+#readBar{position:fixed;top:0;left:0;height:2px;width:0;z-index:51;background:var(--ball-gradient);box-shadow:0 0 10px rgba(249,115,22,.5)}
+
+/* ================= 计分板扩展：连击 / 命中率 / 投篮历史 ================= */
+#scoreboard .sb-streak{font-family:var(--mono);font-weight:900;font-size:.95rem;color:#fb923c;text-shadow:0 0 12px rgba(251,146,60,.8);min-height:1.3em;text-align:right;letter-spacing:.04em}
+#scoreboard .sb-streak.pop{animation:sbPop .45s ease}
+#scoreboard .sb-rate{font-family:var(--mono);font-size:.68rem;color:var(--muted);letter-spacing:.06em;min-height:1.1em;text-align:right}
+#scoreboard .sb-hist{display:flex;gap:4px;justify-content:flex-end;min-height:8px}
+#scoreboard .sb-hist i{width:8px;height:8px;border-radius:50%}
+#scoreboard .sb-hist i.hit{background:var(--ball);box-shadow:0 0 6px rgba(249,115,22,.7)}
+#scoreboard .sb-hist i.miss{background:#475569}
+
+/* ================= 瞄准辅助线 ================= */
+#aimSvg{position:fixed;inset:0;width:100%;height:100%;z-index:48;pointer-events:none;display:none}
+#aimSvg.show{display:block}
+#aimTip{position:fixed;z-index:48;transform:translate(-50%,-50%);padding:4px 12px;border-radius:999px;font-family:var(--mono);font-size:.78rem;font-weight:900;letter-spacing:.06em;background:rgba(6,11,20,.92);border:1px solid rgba(249,115,22,.55);color:var(--ball);box-shadow:0 4px 18px rgba(2,8,20,.5);pointer-events:none;opacity:0;transition:opacity .15s;white-space:nowrap}
+#aimTip.show{opacity:1}
+#aimTip.t3{color:#e8a33d;border-color:rgba(232,163,61,.6)}
+
+/* ================= 一键复制 + Toast ================= */
+.copy-btn{margin-left:auto;width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;color:var(--muted);cursor:pointer;transition:all .25s;flex-shrink:0;font-family:inherit;
+  background:linear-gradient(145deg,rgba(0,194,255,.14),rgba(168,85,247,.07));
+  border:1px solid rgba(56,189,248,.3);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 3px 10px rgba(0,194,255,.1)}
+.copy-btn::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 18%,rgba(255,255,255,.16),transparent 55%);pointer-events:none}
+.copy-btn svg{width:15px;height:15px;display:block}
+.copy-btn:hover{transform:translateY(-1px);color:var(--ball);border-color:rgba(249,115,22,.55);background:linear-gradient(145deg,rgba(249,115,22,.18),rgba(232,163,61,.08));box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 5px 16px rgba(249,115,22,.22)}
+.copy-btn:active{transform:translateY(0) scale(.92)}
+#toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:70;padding:10px 22px;border-radius:999px;background:rgba(6,11,20,.95);border:1px solid rgba(249,115,22,.55);color:var(--ball);font-size:.85rem;font-weight:700;letter-spacing:.05em;box-shadow:0 10px 34px rgba(2,8,20,.6);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(-8px)}
+
+/* ================= 回到顶部 ================= */
+#toTop{position:fixed;left:22px;bottom:22px;z-index:55;width:46px;height:46px;border-radius:50%;border:1px solid rgba(249,115,22,.5);background:rgba(6,11,20,.88);color:var(--ball);font-size:1.25rem;cursor:pointer;opacity:0;pointer-events:none;transform:translateY(16px);transition:opacity .3s,transform .3s,box-shadow .3s;box-shadow:0 6px 20px rgba(2,8,20,.45)}
+#toTop.show{opacity:1;pointer-events:auto;transform:none}
+#toTop:hover{box-shadow:0 0 24px rgba(249,115,22,.5);border-color:var(--ball);animation:bounce .9s ease}
+
+/* ================= 技能熟练度条 ================= */
+.skill-bar{display:flex;align-items:center;gap:10px;margin-top:14px}
+.skill-bar .track{flex:1;height:6px;background:rgba(56,189,248,.08);border-radius:999px;overflow:hidden}
+.skill-bar i{display:block;height:100%;width:0;background:var(--ball-gradient);border-radius:999px;box-shadow:0 0 10px rgba(249,115,22,.5);transition:width 1.1s cubic-bezier(.22,1,.36,1) .3s}
+.skill-bar em{font-family:var(--mono);font-size:.72rem;color:var(--ball-gold);font-style:normal;min-width:34px;text-align:right}
+.card.seen .skill-bar i{width:var(--lv)}
+
+/* ================= 奖杯光泽扫过 / 跑马灯暂停 ================= */
+.trophy{position:relative;overflow:hidden}
+.trophy::after{content:'';position:absolute;top:0;left:-85%;width:50%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.13),transparent);transform:skewX(-20deg);transition:left .65s ease;pointer-events:none}
+.trophy:hover::after{left:135%}
+.marquee-wrap:hover .marquee{animation-play-state:paused}
+
+/* ================= MVP 彩蛋 ================= */
+#mvpBanner{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);z-index:70;font-family:var(--mono);font-weight:900;font-size:clamp(1.5rem,5vw,2.8rem);color:#fbbf24;text-shadow:0 0 24px rgba(251,191,36,.85),0 0 60px rgba(249,115,22,.55);background:rgba(6,11,20,.88);border:2px solid rgba(251,191,36,.6);border-radius:18px;padding:16px 36px;pointer-events:none;animation:mvpIn .55s cubic-bezier(.34,1.56,.64,1) both;white-space:nowrap}
+@keyframes mvpIn{0%{transform:translate(-50%,-50%) scale(0);opacity:0}100%{transform:translate(-50%,-50%) scale(1);opacity:1}}
+.confetti{position:fixed;top:-24px;z-index:69;border-radius:2px;pointer-events:none;opacity:.95;animation-name:confFall;animation-timing-function:linear;animation-fill-mode:forwards}
+@keyframes confFall{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(112vh) rotate(720deg)}}
+
+/* ================= 简历按钮 ================= */
+.btn-resume{border-color:rgba(0,194,255,.45);color:var(--accent);background:linear-gradient(145deg,rgba(0,194,255,.12),rgba(168,85,247,.05));box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
+.btn-resume:hover{transform:translateY(-2px);background:linear-gradient(145deg,rgba(0,194,255,.2),rgba(168,85,247,.09));border-color:var(--accent);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 8px 30px rgba(0,194,255,.22)}
+
+/* ================= 无障碍：减少动态 ================= */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+}
+@media(max-width:640px){
+  #scoreboard .sb-hist{display:none}
+}
+
+/* ================= 响应式 ================= */
+@media(max-width:860px){
+  .profile-row{grid-template-columns:1fr;justify-items:center;text-align:center}
+  .skills-layout{grid-template-columns:1fr}
+  #scoreboard{top:auto;bottom:14px;right:14px;flex-direction:row;align-items:center;gap:8px}
+  #scoreboard .sb-label{display:none}
+  #scoreboard .sb-score{font-size:1.4rem}
+  #scoreboard .sb-plus{top:6px}
+}
+@media(max-width:640px){
+  .nav-inner{padding:10px 14px;gap:10px}
+  .nav-brand .brand-zh{display:none}
+  .nav-links a{padding:5px 8px;font-size:.76rem}
+  .hero{padding-top:120px}
+  .section{padding:96px 18px 60px}
+  .shot-stage{height:160px}
+  #ball{width:52px;height:52px}
+}
+</style>
+</head>
+<body>
+
+<!-- 背景层 -->
+<div id="bg-grid"></div>
+<div id="bg-court" aria-hidden="true">
+  <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+    <!-- 极淡木地板色底，勾勒场地轮廓 -->
+    <rect x="100" y="120" width="1000" height="640" rx="6" fill="rgba(180,83,9,.045)" stroke="none"/>
+    <g fill="none" stroke="var(--court-line)" stroke-width="2.5">
+      <!-- 边线 -->
+      <rect x="100" y="120" width="1000" height="640" rx="6"/>
+      <!-- 中线 + 中圈 -->
+      <line x1="600" y1="120" x2="600" y2="760"/>
+      <circle cx="600" cy="440" r="72"/>
+      <!-- 左半场：油漆区 / 罚球线 / 罚球圈 / 篮板 / 篮筐 / 合理冲撞区 -->
+      <rect x="100" y="350" width="150" height="180"/>
+      <line x1="250" y1="350" x2="250" y2="530"/>
+      <circle cx="250" cy="440" r="55"/>
+      <line x1="120" y1="400" x2="120" y2="480"/>
+      <circle cx="140" cy="440" r="13"/>
+      <path d="M140 405 A35 35 0 0 1 140 475"/>
+      <!-- 左半场：三分线（两侧直线段 + 以篮筐为圆心的弧） -->
+      <line x1="100" y1="158" x2="215" y2="158"/>
+      <line x1="100" y1="722" x2="215" y2="722"/>
+      <path d="M215 158 A292 292 0 0 1 215 722"/>
+      <!-- 右半场（镜像） -->
+      <rect x="950" y="350" width="150" height="180"/>
+      <line x1="950" y1="350" x2="950" y2="530"/>
+      <circle cx="950" cy="440" r="55"/>
+      <line x1="1080" y1="400" x2="1080" y2="480"/>
+      <circle cx="1060" cy="440" r="13"/>
+      <path d="M1060 405 A35 35 0 0 0 1060 475"/>
+      <line x1="1100" y1="158" x2="985" y2="158"/>
+      <line x1="1100" y1="722" x2="985" y2="722"/>
+      <path d="M985 158 A292 292 0 0 0 985 722"/>
+    </g>
+  </svg>
+</div>
+<div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div>
+
+<!-- 导航 -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-brand" href="#home" onclick="showPage('home')">
+      <span class="ball-ico">🏀</span><span class="brand-michael">Michael</span><span class="brand-zh">张海源</span>
+    </a>
+    <div class="nav-links">
+      <a class="active" data-page="home" href="#home" onclick="showPage('home')" data-i18n="nav_home">首页</a>
+      <a data-page="about" href="#about" onclick="showPage('about')" data-i18n="nav_about">关于我</a>
+      <a data-page="skills" href="#skills" onclick="showPage('skills')" data-i18n="nav_skills">技能</a>
+      <a data-page="projects" href="#projects" onclick="showPage('projects')" data-i18n="nav_projects">项目</a>
+      <a data-page="awards" href="#awards" onclick="showPage('awards')" data-i18n="nav_awards">荣誉</a>
+      <a data-page="contact" href="#contact" onclick="showPage('contact')" data-i18n="nav_contact">联系</a>
+    </div>
+    <button class="snd-btn" id="sndBtn" onclick="toggleSound()" aria-label="音效开关" title="音效开关">🔇</button>
+    <button class="lang-btn" id="langBtn" onclick="toggleLang()">EN</button>
+    <a class="nav-avatar" href="#about" onclick="showPage('about')" title="关于我">
+      <img src="avatar1.png" alt="Michael 头像" onerror="this.style.display='none'"/>
+    </a>
+  </div>
+  <div class="nav-indicator" id="navInd"></div>
+</nav>
+
+<!-- 投篮计分板 -->
+<div id="scoreboard">
+  <span class="sb-label" data-i18n="sb_label">得分</span>
+  <div class="sb-row">
+    <span class="sb-plus" id="sbPlus"></span>
+    <span class="sb-score" id="sbScore">00</span>
+  </div>
+  <span class="sb-streak" id="sbStreak"></span>
+  <span class="sb-rate" id="sbRate" style="display:none"></span>
+  <span class="sb-hist" id="sbHist"></span>
+</div>
+<div id="flash"></div>
+<!-- 阅读进度条 / 瞄准辅助线 / Toast / 回到顶部 -->
+<div id="readBar"></div>
+<svg id="aimSvg" aria-hidden="true"><path id="aimLine" d="" fill="none" stroke="#f97316" stroke-width="2" stroke-dasharray="7 6" opacity=".6"/></svg>
+<div id="aimTip"></div>
+<div id="toast"></div>
+<button id="toTop" aria-label="回到顶部" title="回到顶部">🏀</button>
+
+<!-- ================= 首页 ================= -->
+<section class="page active" id="page-home">
+  <div class="hero">
+    <div class="badge" data-i18n="home_badge">FULL-STACK · AI · BASKETBALL</div>
+    <h1><span data-i18n="home_iam">我是</span> <span class="gradient-text" id="heroName">张海源</span></h1>
+    <p class="tagline"><span id="taglineText"></span><span class="typewriter-cursor"></span></p>
+    <div class="tech-tags">
+      <span>Vue3</span><span>Spring Boot</span><span>FastAPI</span>
+      <span>LangChain</span><span>RAG</span><span>AI Agent</span>
+      <span>C/C++</span><span>TypeScript</span><span>MySQL</span>
+    </div>
+    <div class="cta-row">
+      <button class="btn btn-primary" onclick="showPage('projects')">
+        <span data-i18n="cta_projects">查看项目</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+      <button class="btn btn-ghost" onclick="showPage('contact')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m3 6 9 7 9-7"/></svg>
+        <span data-i18n="cta_contact">联系我</span>
+      </button>
+      <a class="btn btn-resume" href="张海源_简历.pdf" download="张海源_简历.pdf">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+        <span data-i18n="ct_resume">下载简历</span>
+      </a>
+    </div>
+
+    <!-- 投篮彩蛋 -->
+    <div class="shot-stage">
+      <div id="hoop">
+        <svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <linearGradient id="bbGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#ffffff"/>
+              <stop offset=".55" stop-color="#eef2f7"/>
+              <stop offset="1" stop-color="#d3dde7"/>
+            </linearGradient>
+            <linearGradient id="bbEdge" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#c3d0dd"/>
+              <stop offset=".5" stop-color="#8fa3b8"/>
+              <stop offset="1" stop-color="#5f7187"/>
+            </linearGradient>
+            <linearGradient id="glare" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#ffffff" stop-opacity=".7"/>
+              <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+            </linearGradient>
+            <linearGradient id="rimGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#7c2d12"/>
+              <stop offset=".4" stop-color="#ea580c"/>
+              <stop offset=".75" stop-color="#fb923c"/>
+              <stop offset="1" stop-color="#fbbf24"/>
+            </linearGradient>
+            <linearGradient id="netShade" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#f8fafc"/>
+              <stop offset="1" stop-color="#c3cdd9"/>
+            </linearGradient>
+            <linearGradient id="poleGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#7c8ba1"/>
+              <stop offset=".5" stop-color="#cbd5e1"/>
+              <stop offset="1" stop-color="#64748b"/>
+            </linearGradient>
+            <filter id="softBlur" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="4"/>
+            </filter>
+          </defs>
+          <!-- 支架 + 安装螺栓 -->
+          <g stroke="url(#poleGrad)" stroke-width="6" stroke-linecap="round">
+            <line x1="42" y1="26" x2="16" y2="4"/>
+            <line x1="158" y1="26" x2="184" y2="4"/>
+          </g>
+          <circle cx="42" cy="26" r="4" fill="#94a3b8"/>
+          <circle cx="158" cy="26" r="4" fill="#94a3b8"/>
+          <!-- 篮板（渐变玻璃 + 3D 边框 + 内沿厚度） -->
+          <rect x="26" y="14" width="156" height="86" rx="10" fill="rgba(2,8,20,.3)" filter="url(#softBlur)"/>
+          <rect x="22" y="8" width="156" height="86" rx="10" fill="url(#bbGrad)" stroke="url(#bbEdge)" stroke-width="3.5"/>
+          <rect x="26.5" y="12.5" width="147" height="77" rx="7" fill="none" stroke="rgba(95,113,135,.4)" stroke-width="1.2"/>
+          <!-- 玻璃反光斜带 + 竖向玻璃纹 -->
+          <path d="M38 90 L70 12 L92 12 L60 90 Z" fill="url(#glare)"/>
+          <path d="M122 12 L122 90" stroke="#ffffff" stroke-width="5" opacity=".22"/>
+          <!-- 框架固定螺丝 -->
+          <g>
+            <circle cx="30" cy="16" r="2.4" fill="#64748b"/><circle cx="30" cy="16" r="1" fill="#cbd5e1"/>
+            <circle cx="170" cy="16" r="2.4" fill="#64748b"/><circle cx="170" cy="16" r="1" fill="#cbd5e1"/>
+            <circle cx="30" cy="90" r="2.4" fill="#64748b"/><circle cx="30" cy="90" r="1" fill="#cbd5e1"/>
+            <circle cx="170" cy="90" r="2.4" fill="#64748b"/><circle cx="170" cy="90" r="1" fill="#cbd5e1"/>
+          </g>
+          <!-- 瞄准框：双层立体描边 -->
+          <rect x="66" y="30" width="68" height="46" rx="3" fill="none" stroke="#ea580c" stroke-width="4"/>
+          <rect x="67.5" y="31.5" width="65" height="43" rx="2" fill="none" stroke="#fdba74" stroke-width="1.2" opacity=".9"/>
+          <!-- 篮板底部投影 -->
+          <rect x="26" y="88" width="148" height="4" rx="2" fill="rgba(15,23,42,.14)"/>
+        </svg>
+      </div>
+      <!-- 篮圈+网（独立一层：入网时抬到球上方，篮板不动） -->
+      <div id="hoopFront">
+        <svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- 篮圈后沿（透过网可见） -->
+          <ellipse cx="100" cy="112" rx="46" ry="12" fill="none" stroke="#7c2d12" stroke-width="3.5" opacity=".6"/>
+          <!-- 篮网（整体包一层，进球时做网兜形变） -->
+          <g class="net">
+          <!-- 篮网：纵向线（9 条，S 形外扩垂坠，下摆加宽） -->
+          <g fill="none" stroke="url(#netShade)" stroke-width="1.3" opacity=".95">
+            <path d="M146 112 C149 130 148 160 130 190"/>
+            <path d="M142.5 116.6 C146 132 145 162 127.7 192.3"/>
+            <path d="M132.5 120.5 C138 136 137 164 121.2 194.2"/>
+            <path d="M117.6 123.1 C124 138 122 166 111.5 195.5"/>
+            <path d="M100 124 C104 138 100 168 100 196"/>
+            <path d="M82.4 123.1 C76 138 78 166 88.5 195.5"/>
+            <path d="M67.5 120.5 C62 136 63 164 78.8 194.2"/>
+            <path d="M57.5 116.6 C54 132 55 162 72.3 192.3"/>
+            <path d="M54 112 C51 130 52 160 70 190"/>
+            <!-- 横向扇形弧（4 行，菱形网眼） -->
+            <path d="M60 138 Q100 150 140 138"/>
+            <path d="M64 153 Q100 165 136 153"/>
+            <path d="M70 168 Q100 180 130 168"/>
+            <path d="M66 182 Q100 194 134 182"/>
+          </g>
+          <!-- 网右侧阴影（侧光） -->
+          <path d="M100 124 L146 112 L148 134 L130 190 L100 196 Z" fill="rgba(15,23,42,.08)"/>
+          <!-- 网结（带阴影的双层结，4 行） -->
+          <g fill="rgba(15,23,42,.25)">
+            <circle cx="66.6" cy="141.5" r="1.6"/><circle cx="80.6" cy="144.6" r="1.6"/><circle cx="93.6" cy="146.8" r="1.6"/><circle cx="100.6" cy="147.4" r="1.6"/><circle cx="107.6" cy="146.8" r="1.6"/><circle cx="120.6" cy="144.6" r="1.6"/><circle cx="134.6" cy="141.5" r="1.6"/>
+            <circle cx="68.6" cy="156" r="1.6"/><circle cx="82.6" cy="159" r="1.6"/><circle cx="94.6" cy="161" r="1.6"/><circle cx="100.6" cy="161.7" r="1.6"/><circle cx="106.6" cy="161" r="1.6"/><circle cx="118.6" cy="159" r="1.6"/><circle cx="132.6" cy="156" r="1.6"/>
+            <circle cx="73.6" cy="171" r="1.6"/><circle cx="86.6" cy="173.5" r="1.6"/><circle cx="95.6" cy="175.5" r="1.6"/><circle cx="100.6" cy="176" r="1.6"/><circle cx="105.6" cy="175.5" r="1.6"/><circle cx="114.6" cy="173.5" r="1.6"/><circle cx="127.6" cy="171" r="1.6"/>
+            <circle cx="68.6" cy="185" r="1.6"/><circle cx="82.6" cy="186.8" r="1.6"/><circle cx="93.6" cy="187.8" r="1.6"/><circle cx="100.6" cy="188.2" r="1.6"/><circle cx="107.6" cy="187.8" r="1.6"/><circle cx="118.6" cy="186.8" r="1.6"/><circle cx="132.6" cy="185" r="1.6"/>
+          </g>
+          <g fill="#f8fafc">
+            <circle cx="66" cy="141" r="1.4"/><circle cx="80" cy="144" r="1.4"/><circle cx="93" cy="146.2" r="1.4"/><circle cx="100" cy="146.8" r="1.4"/><circle cx="107" cy="146.2" r="1.4"/><circle cx="120" cy="144" r="1.4"/><circle cx="134" cy="141" r="1.4"/>
+            <circle cx="68" cy="155.5" r="1.4"/><circle cx="82" cy="158.5" r="1.4"/><circle cx="94" cy="160.5" r="1.4"/><circle cx="100" cy="161.2" r="1.4"/><circle cx="106" cy="160.5" r="1.4"/><circle cx="118" cy="158.5" r="1.4"/><circle cx="132" cy="155.5" r="1.4"/>
+            <circle cx="73" cy="170.5" r="1.4"/><circle cx="86" cy="173" r="1.4"/><circle cx="95" cy="175" r="1.4"/><circle cx="100" cy="175.5" r="1.4"/><circle cx="105" cy="175" r="1.4"/><circle cx="114" cy="173" r="1.4"/><circle cx="127" cy="170.5" r="1.4"/>
+            <circle cx="68" cy="184.5" r="1.4"/><circle cx="82" cy="186.3" r="1.4"/><circle cx="93" cy="187.3" r="1.4"/><circle cx="100" cy="187.7" r="1.4"/><circle cx="107" cy="187.3" r="1.4"/><circle cx="118" cy="186.3" r="1.4"/><circle cx="132" cy="184.5" r="1.4"/>
+          </g>
+          </g>
+          <!-- 篮圈前沿：金属渐变 + 高光 + 上缘阴影 -->
+          <ellipse cx="100" cy="112" rx="46" ry="12" fill="none" stroke="url(#rimGrad)" stroke-width="8"/>
+          <ellipse cx="100" cy="112" rx="46" ry="12" fill="none" stroke="#fb923c" stroke-width="2.5" opacity=".85"/>
+          <path d="M54 112 A46 12 0 0 1 146 112" fill="none" stroke="#fde68a" stroke-width="2" opacity=".95"/>
+          <path d="M54 112 A46 12 0 0 0 146 112" fill="none" stroke="#7c2d12" stroke-width="1.6" opacity=".65"/>
+          <!-- 篮圈金属高光点 -->
+          <path d="M66 115.5 Q72 119.5 79 121.5" fill="none" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" opacity=".75"/>
+          <path d="M121 121.5 Q128 119.5 134 115.5" fill="none" stroke="#ffffff" stroke-width="1.4" stroke-linecap="round" opacity=".6"/>
+          <!-- 篮圈投在网上的阴影 -->
+          <path d="M68 125 Q100 139 132 125" fill="none" stroke="rgba(15,23,42,.16)" stroke-width="4"/>
+          <!-- 挂网钩 -->
+          <g stroke="#7c2d12" stroke-width="2.4" stroke-linecap="round">
+            <line x1="146" y1="112" x2="146" y2="118"/>
+            <line x1="142.5" y1="116.6" x2="143" y2="121"/>
+            <line x1="132.5" y1="120.5" x2="133" y2="124"/>
+            <line x1="117.6" y1="123.1" x2="118" y2="126"/>
+            <line x1="100" y1="124" x2="100" y2="126.5"/>
+            <line x1="82.4" y1="123.1" x2="82" y2="126"/>
+            <line x1="67.5" y1="120.5" x2="67" y2="124"/>
+            <line x1="57.5" y1="116.6" x2="57" y2="121"/>
+            <line x1="54" y1="112" x2="54" y2="118"/>
+          </g>
+        </svg>
+      </div>
+      <div class="shot-callout" id="shotCallout">
+        <svg class="burst" viewBox="0 0 100 100"><polygon id="burstPoly" opacity=".92"/></svg>
+        <div class="callout-text" id="calloutText"></div>
+      </div>
+      <div id="ball" role="button" tabindex="0" aria-label="篮球（点击投篮）">
+        <!-- 微软 Fluent Emoji 3D 篮球（basketball.png） -->
+        <img src="basketball.png" alt="篮球" draggable="false"/>
+      </div>
+    </div>
+    <div class="shot-hint">👆 <span data-i18n="shot_hint">拖动篮球定位</span> · <b data-i18n="shot_hint2">双击出手投篮</b></div>
+
+    <!-- 计分板统计 -->
+    <div class="scoreline" style="margin-top:34px">
+      <div class="stat"><div class="num" data-count="4">0</div><div class="lbl" data-i18n="st_projects">项目</div></div>
+      <div class="stat"><div class="num" data-count="7">0</div><div class="lbl" data-i18n="st_awards">荣誉</div></div>
+      <div class="stat"><div class="num" data-count="15" data-suffix="+">0</div><div class="lbl" data-i18n="st_tech">技术栈</div></div>
+      <div class="stat"><div class="num" data-count="3.5" data-dec="1" data-suffix="+">0</div><div class="lbl" data-i18n="st_gpa">GPA</div></div>
+    </div>
+  </div>
+
+  <!-- 技术栈跑马灯 -->
+  <div class="marquee-wrap">
+    <div class="marquee" id="marquee"></div>
+  </div>
+</section>
+
+<!-- ================= 关于我 ================= -->
+<section class="page section" id="page-about">
+  <div class="sec-title" data-i18n="about_title">关于我</div>
+  <div class="sec-sub" data-i18n="about_sub">球员档案</div>
+
+  <div class="profile-row">
+    <div class="avatar-wrap" id="avatarWrap">
+      <img id="avatarImg" src="avatar.png" alt="Michael 张海源" onerror="avatarFallback()"/>
+    </div>
+    <div>
+      <h2 style="margin-bottom:6px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><span class="name-michael">Michael</span><span class="name-zh">张海源</span></h2>
+      <div class="meta-line"><span>🛡️ <span data-i18n="about_obj">软件开发工程师（前后端）</span></span><span>🎓 <span data-i18n="about_stu">大二在读</span></span></div>
+      <p style="font-size:.88rem;color:var(--muted);margin-top:14px;line-height:1.9" data-i18n="about_desc">计算机科学与技术专业大二在读，拥有扎实的 C/C++ 编程功底与全栈开发能力。2026 年起深入 AI 大模型应用领域，熟练使用 LangChain 框架搭建 RAG 知识库与 AI Agent 智能体系统，具备 Prompt Engineering 实践经验。熟悉 Vue3 + Spring Boot 全栈开发流程，能够独立完成从需求分析到部署上线的完整项目。擅长用 AI 工具（Claude Code、Cursor 等）进行 Vibe Coding 高效开发，具备较强的自主学习与技术跟进能力。</p>
+    </div>
+  </div>
+
+  <div class="about-cards">
+    <div class="card">
+      <h3><span class="h3-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 9 12 4 2 9l10 5 10-5z"/><path d="M6 11.5V16c0 1.6 2.7 3 6 3s6-1.4 6-3v-4.5"/><path d="M22 9v5"/></svg></span><span data-i18n="edu_title">教育背景</span></h3>
+      <div style="font-weight:800;font-size:.95rem">上海海洋大学 <span style="font-weight:400;color:var(--muted);font-size:.78rem">Shanghai Ocean University</span></div>
+      <div class="meta-line" style="margin-top:6px"><span data-i18n="edu_major">计算机科学与技术 · 本科</span><span class="chip ball" style="padding:2px 10px;font-size:.68rem">2024.09 – 2028.06</span></div>
+      <div class="kv" style="margin-top:10px">
+        <span class="chip ball">GPA 3.5+ / 4.0</span>
+        <span class="chip" data-i18n="edu_monitor">副班长</span>
+        <span class="chip" data-i18n="edu_scholar">多次人民奖学金</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="h3-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h6"/></svg></span><span data-i18n="cert_title">证书 & 语言</span></h3>
+      <div class="kv">
+        <span class="chip ball">CET-4 / CET-6</span>
+        <span class="chip" data-i18n="cert_sh3">上海市计算机三级</span>
+      </div>
+      <p style="font-size:.76rem;color:var(--muted);margin-top:12px;line-height:1.7" data-i18n="cert_note">大学英语四六级 + 上海市高等学校信息技术水平考试三级（计算机）</p>
+    </div>
+    <!-- 篮球档案卡（填写 TODO-BASKETBALL 后自动显示） -->
+    <div class="card" id="ballCard" style="display:none;border-left:3px solid var(--ball)">
+      <h3 style="color:var(--ball)">🏀 <span data-i18n="ball_title">球员档案</span></h3>
+      <div class="kv">
+        <span class="chip ball" id="bpPos"></span>
+        <span class="chip ball" id="bpNo"></span>
+        <span class="chip ball" id="bpTeam"></span>
+        <span class="chip ball" id="bpYears"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 大字签名：双击有彩蛋 -->
+  <div class="big-word-wrap">
+    <div class="big-word-glow" aria-hidden="true">Michael</div>
+    <div class="big-word" title="双击有彩蛋">Michael</div>
+  </div>
+</section>
+
+<!-- ================= 技能 ================= -->
+<section class="page section" id="page-skills">
+  <div class="sec-title" data-i18n="skills_title">技能</div>
+  <div class="sec-sub" data-i18n="skills_sub">球员属性</div>
+  <div class="skills-layout">
+    <div>
+      <div id="radarBox"><svg id="radar" viewBox="0 0 340 340"></svg><div class="radar-tip" id="radarTip"></div></div>
+      <div class="radar-cap" data-i18n="radar_cap">NBA 2K 风格 · 六维属性</div>
+    </div>
+    <div class="skill-cats">
+      <div class="card skill-cat">
+        <h3><span class="h3-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5"/><path d="m16 7 5 5-5 5"/></svg></span><span data-i18n="sk_cat1">编程语言</span></h3>
+        <div class="tags"><span>C/C++</span><span>Python</span><span>JavaScript</span><span>TypeScript</span><span>HTML/CSS</span></div>
+        <div class="skill-bar" style="--lv:90%"><div class="track"><i></i></div><em>90</em></div>
+      </div>
+      <div class="card skill-cat purple">
+        <h3><span class="h3-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 2 8 4.5-8 4.5-8-4.5L12 2z"/><path d="m4 12.5 8 4.5 8-4.5"/><path d="m4 17.5 8 4.5 8-4.5"/></svg></span><span data-i18n="sk_cat2">框架 & 后端</span></h3>
+        <div class="tags"><span>Vue3</span><span>Spring Boot</span><span>REST API</span><span>MySQL</span><span>FastAPI</span></div>
+        <div class="skill-bar" style="--lv:85%"><div class="track"><i></i></div><em>85</em></div>
+      </div>
+      <div class="card skill-cat ball">
+        <h3><span class="h3-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l1.9 5.6L19.5 9.5l-5.6 1.9L12 17l-1.9-5.6L4.5 9.5l5.6-1.9z"/><path d="M18.5 14l.9 2.7 2.7.9-2.7.9-.9 2.7-.9-2.7-2.7-.9 2.7-.9z"/></svg></span><span data-i18n="sk_cat3">AI & 工具链</span></h3>
+        <div class="tags"><span>LangChain</span><span>RAG</span><span>AI Agent</span><span>Prompt Engineering</span><span>Git</span></div>
+        <div class="skill-bar" style="--lv:88%"><div class="track"><i></i></div><em>88</em></div>
+      </div>
+      <div class="card skill-cat">
+        <h3><span class="h3-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="5"/><path d="M9 13.8 7.6 21l4.4-2.4L16.4 21 15 13.8"/></svg></span><span data-i18n="sk_cat4">证书 & 语言</span></h3>
+        <div class="tags"><span>CET-4 / CET-6</span><span data-i18n="cert_sh3">上海市计算机三级</span></div>
+        <div class="skill-bar" style="--lv:90%"><div class="track"><i></i></div><em>90</em></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 项目 ================= -->
+<section class="page section" id="page-projects">
+  <div class="sec-title" data-i18n="pj_title">项目</div>
+  <div class="sec-sub" data-i18n="pj_sub">比赛集锦 · 关键战役</div>
+  <div class="timeline">
+    <div class="tl-item card tilt">
+      <div class="tl-dot">01</div>
+      <div class="tl-head"><span class="tl-title" data-i18n="p4_title">个人网站 — Michael.Kai.com</span><span class="tl-period" data-i18n="p4_period">2026.08 – 至今</span></div>
+      <div class="tl-tech"><span>HTML/CSS</span><span>JavaScript</span><span>SVG</span><span>Web Audio</span><span>i18n</span><span>零依赖</span></div>
+      <ul class="tl-high">
+        <li data-i18n="p4_h1">纯前端单文件实现（内联 CSS/JS，零框架零依赖），深色科技风 + 篮球主题视觉系统</li>
+        <li data-i18n="p4_h2">中英双语 i18n + Hash 路由 + localStorage 语言/计分记忆</li>
+        <li data-i18n="p4_h3">手写 SVG：NBA 2K 属性雷达图、拟真篮筐、NBA 风格奖杯图标、球场线条背景</li>
+        <li data-i18n="p4_h4">篮球投篮彩蛋：重力抛物线物理、距离衰减命中率、粒子爆炸播报、WebAudio 合成音效、🔥连击与里程碑系统</li>
+      </ul>
+    </div>
+    <div class="tl-item card tilt">
+      <div class="tl-dot two">02</div>
+      <div class="tl-head"><span class="tl-title" data-i18n="p2_title">全栈记账应用 — My Record</span><span class="tl-period">2026.07 – 2026.08</span></div>
+      <div class="tl-tech"><span>Vue3</span><span>TypeScript</span><span>Spring Boot</span><span>MySQL</span><span>REST API</span><span>AI-Assisted Dev</span></div>
+      <ul class="tl-high">
+        <li data-i18n="p2_h1">独立设计并开发完整的前后端分离记账应用，支持收支记录、分类统计与数据可视化</li>
+        <li data-i18n="p2_h2">前端使用 Vue3 + TypeScript，实现响应式布局与组件化开发</li>
+        <li data-i18n="p2_h3">后端基于 Spring Boot + MySQL，设计 RESTful API 完成数据增删改查与月度统计</li>
+        <li data-i18n="p2_h4">借助 AI 编程助手协作开发，实践 Prompt Engineering 驱动的高效开发流程</li>
+      </ul>
+    </div>
+    <div class="tl-item card tilt">
+      <div class="tl-dot three">03</div>
+      <div class="tl-head"><span class="tl-title" data-i18n="p1_title">AI Agent 智能文档助手（RAG 知识库系统）</span><span class="tl-period">2026.05 – 2026.07</span></div>
+      <div class="tl-tech"><span>LangChain</span><span>Python</span><span>FastAPI</span><span>ChromaDB</span><span>Vue3</span><span>LLM API</span><span>Git</span></div>
+      <ul class="tl-high">
+        <li data-i18n="p1_h1">基于 LangChain 框架构建 RAG（检索增强生成）管道，实现 PDF/文档的向量化存储与语义检索</li>
+        <li data-i18n="p1_h2">集成多种 LLM API（DeepSeek / 通义千问），通过 Agent 架构实现工具调用、多轮对话与上下文管理</li>
+        <li data-i18n="p1_h3">使用 ChromaDB 向量数据库存储文档嵌入，结合 Transformers Embedding 模型优化检索精度</li>
+        <li data-i18n="p1_h4">前端 Vue3 对话界面 + 后端 FastAPI REST 服务，全程 Claude Code Vibe Coding 高效迭代</li>
+      </ul>
+    </div>
+    <div class="tl-item card tilt">
+      <div class="tl-dot four">04</div>
+      <div class="tl-head"><span class="tl-title" data-i18n="p3_title">C/C++ 游戏逻辑模拟 — 碰撞检测与图形交互</span><span class="tl-period">2025.10 – 2025.12</span></div>
+      <div class="tl-tech"><span>C/C++</span><span>算法设计</span><span>图形编程基础</span><span>游戏逻辑</span></div>
+      <ul class="tl-high">
+        <li data-i18n="p3_h1">使用 C/C++ 实现 2D 游戏底层碰撞检测算法（AABB / 圆形碰撞），理解游戏物理引擎核心逻辑</li>
+        <li data-i18n="p3_h2">设计模块化代码结构，实现碰撞响应、事件分发与帧循环渲染管线</li>
+        <li data-i18n="p3_h3">为后续与技术人员对接游戏需求打下底层逻辑基础</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 荣誉 ================= -->
+<section class="page section" id="page-awards">
+  <div class="sec-title" data-i18n="aw_title">荣誉</div>
+  <div class="sec-sub" data-i18n="aw_sub">荣誉墙 · 奖杯陈列室</div>
+  <div class="trophy-grid">
+    <div class="card trophy tilt gold">
+      <div class="cup-box"><svg class="cup" viewBox="0 0 64 64"><defs><linearGradient id="t1g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fcd34d"/><stop offset=".45" stop-color="#d97706"/><stop offset="1" stop-color="#8a4a0f"/></linearGradient></defs><circle cx="44" cy="10" r="6.5" fill="#d97706"/><path d="M39.5 10h9M44 5v10" stroke="#7c2d12" stroke-width="1.2"/><path d="M30 24 L44 11" stroke="url(#t1g)" stroke-width="4.5" stroke-linecap="round"/><circle cx="29" cy="20" r="4.5" fill="url(#t1g)"/><path d="M25 26 Q29 24 33 28 L35 40 L27 42 Z" fill="url(#t1g)"/><path d="M28 42 L36 50 M34 41 L26 52" stroke="url(#t1g)" stroke-width="4.5" stroke-linecap="round"/><rect x="14" y="52" width="36" height="7" rx="2" fill="#92400e"/><rect x="8" y="58" width="48" height="4" rx="1.5" fill="#78350f"/></svg></div>
+      <div><div class="t-name" data-i18n="a1_name">蓝桥杯 — 上海赛区 C/C++ 组 省赛二等奖</div><div class="t-desc" data-i18n="a1_desc">蓝桥杯全国软件和信息技术专业人才大赛</div></div>
+    </div>
+    <div class="card trophy tilt silver">
+      <div class="cup-box"><svg class="cup" viewBox="0 0 64 64"><defs><linearGradient id="t2g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f8fafc"/><stop offset=".5" stop-color="#cbd5e1"/><stop offset="1" stop-color="#7c8aa0"/></linearGradient></defs><circle cx="32" cy="15" r="5" fill="url(#t2g)"/><path d="M27 22 h10 v14 h-10 z" fill="url(#t2g)"/><path d="M27 24 Q20 22 13 27 M37 24 Q44 22 51 27" stroke="url(#t2g)" stroke-width="4" stroke-linecap="round" fill="none"/><path d="M27 36 Q24 44 19 50 M37 36 Q40 44 45 50" stroke="url(#t2g)" stroke-width="4" stroke-linecap="round" fill="none"/><rect x="8" y="52" width="48" height="7" rx="2" fill="#64748b"/><rect x="4" y="58" width="56" height="4" rx="1.5" fill="#475569"/></svg></div>
+      <div><div class="t-name" data-i18n="a2_name">蓝桥杯 — 上海赛区 C/C++ 组 省赛三等奖</div><div class="t-desc" data-i18n="a2_desc">蓝桥杯全国软件和信息技术专业人才大赛</div></div>
+    </div>
+    <div class="card trophy tilt silver">
+      <div class="cup-box"><svg class="cup" viewBox="0 0 64 64"><defs><linearGradient id="t3g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fde68a"/><stop offset=".5" stop-color="#e8a33d"/><stop offset="1" stop-color="#b45309"/></linearGradient></defs><circle cx="32" cy="17" r="13" fill="url(#t3g)"/><path d="M21 17 h22 M23 11 Q32 23 41 11 M23 23 Q32 11 41 23 M32 5 v24" stroke="#92400e" stroke-width="1.4" fill="none"/><rect x="27" y="31" width="10" height="7" rx="1" fill="#d97706"/><rect x="19" y="38" width="26" height="6" rx="1.5" fill="url(#t3g)"/><rect x="12" y="44" width="40" height="6" rx="1.5" fill="#cbd5e1"/><rect x="6" y="50" width="52" height="7" rx="2" fill="#64748b"/><rect x="3" y="57" width="58" height="4" rx="1.5" fill="#475569"/></svg></div>
+      <div><div class="t-name" data-i18n="a3_name">人民奖学金 · 二等奖</div><div class="t-desc" data-i18n="a3_desc">上海海洋大学 · 学业表现持续优秀</div></div>
+    </div>
+    <div class="card trophy tilt silver">
+      <div class="cup-box"><svg class="cup" viewBox="0 0 64 64"><defs><linearGradient id="t4g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fde68a"/><stop offset=".5" stop-color="#e8a33d"/><stop offset="1" stop-color="#b45309"/></linearGradient></defs><circle cx="32" cy="17" r="13" fill="url(#t4g)"/><path d="M21 17 h22 M23 11 Q32 23 41 11 M23 23 Q32 11 41 23 M32 5 v24" stroke="#92400e" stroke-width="1.4" fill="none"/><rect x="27" y="31" width="10" height="7" rx="1" fill="#d97706"/><rect x="19" y="38" width="26" height="6" rx="1.5" fill="url(#t4g)"/><rect x="12" y="44" width="40" height="6" rx="1.5" fill="#cbd5e1"/><rect x="6" y="50" width="52" height="7" rx="2" fill="#64748b"/><rect x="3" y="57" width="58" height="4" rx="1.5" fill="#475569"/></svg></div>
+      <div><div class="t-name" data-i18n="a3_name">人民奖学金 · 二等奖</div><div class="t-desc" data-i18n="a3_desc">上海海洋大学 · 学业表现持续优秀</div></div>
+    </div>
+    <div class="card trophy tilt bronze">
+      <div class="cup-box"><svg class="cup" viewBox="0 0 64 64"><defs><linearGradient id="t5g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fde68a"/><stop offset=".5" stop-color="#e8a33d"/><stop offset="1" stop-color="#b45309"/></linearGradient></defs><circle cx="32" cy="8" r="6.5" fill="url(#t5g)"/><path d="M27 8 h10 M32 3 v10" stroke="#92400e" stroke-width="1.2"/><path d="M27 15 h10 l3 8 h-16 z" fill="#cbd5e1"/><rect x="22" y="23" width="20" height="7" rx="1" fill="url(#t5g)"/><path d="M20 30 h24 l4 10 h-32 z" fill="#cbd5e1"/><path d="M32 38 L34.4 44.8 L41.5 44.9 L35.8 49.2 L37.9 56.1 L32 52 L26.1 56.1 L28.2 49.2 L22.5 44.9 L29.6 44.8 Z" fill="url(#t5g)"/><rect x="14" y="56" width="36" height="5" rx="1.5" fill="#64748b"/></svg></div>
+      <div><div class="t-name" data-i18n="a3c_name">人民奖学金 · 三等奖</div><div class="t-desc" data-i18n="a3_desc">上海海洋大学 · 学业表现持续优秀</div></div>
+    </div>
+    <div class="card trophy tilt">
+      <div class="cup-box"><svg class="cup" viewBox="0 0 64 64"><defs><linearGradient id="t6g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00c2ff"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs><polygon points="32,4 56,18 56,46 32,60 8,46 8,18" fill="rgba(0,194,255,.1)" stroke="url(#t6g)" stroke-width="3"/><rect x="20" y="20" width="24" height="24" rx="3" fill="#0f172a" stroke="url(#t6g)" stroke-width="2.5"/><rect x="27" y="27" width="10" height="10" rx="1.5" fill="none" stroke="#22d3ee" stroke-width="1.6"/><g stroke="url(#t6g)" stroke-width="2" stroke-linecap="round"><line x1="24" y1="20" x2="24" y2="14"/><line x1="32" y1="20" x2="32" y2="14"/><line x1="40" y1="20" x2="40" y2="14"/><line x1="24" y1="44" x2="24" y2="50"/><line x1="32" y1="44" x2="32" y2="50"/><line x1="40" y1="44" x2="40" y2="50"/><line x1="20" y1="26" x2="14" y2="26"/><line x1="20" y1="32" x2="14" y2="32"/><line x1="20" y1="38" x2="14" y2="38"/><line x1="44" y1="26" x2="50" y2="26"/><line x1="44" y1="32" x2="50" y2="32"/><line x1="44" y1="38" x2="50" y2="38"/></g></svg></div>
+      <div><div class="t-name" data-i18n="a4_name">上海市计算机三级证书</div><div class="t-desc" data-i18n="a4_desc">上海市高等学校信息技术水平考试 · 三级（计算机）</div></div>
+    </div>
+    <div class="card trophy tilt ball">
+      <div class="cup-box"><svg class="cup" viewBox="0 0 64 64"><defs><linearGradient id="t7g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f97316"/><stop offset="1" stop-color="#fbbf24"/></linearGradient></defs><path d="M16 8 h26 l8 8 v38 a4 4 0 0 1 -4 4 h-26 a4 4 0 0 1 -4 -4 v-42 a4 4 0 0 1 4 -4 z" fill="#0f172a" stroke="url(#t7g)" stroke-width="2.5"/><path d="M42 8 l8 8 h-8 z" fill="url(#t7g)" opacity=".85"/><path d="M20 8 h24 l-3 5 h-18 z" fill="url(#t7g)"/><line x1="22" y1="20" x2="38" y2="20" stroke="url(#t7g)" stroke-width="2.5"/><line x1="22" y1="27" x2="44" y2="27" stroke="#475569" stroke-width="2"/><line x1="22" y1="34" x2="40" y2="34" stroke="#475569" stroke-width="2"/><path d="M28 40 l2.3 4.6 5.1 .7 -3.7 3.6 .9 5.1 -4.6-2.4 -4.6 2.4 .9-5.1 -3.7-3.6 5.1-.7 z" fill="#fbbf24"/><circle cx="46" cy="45" r="6.5" fill="url(#t7g)"/><circle cx="46" cy="45" r="4.8" fill="#b45309"/><path d="M46 40.5 v9 M41.5 45 h9" stroke="#fde68a" stroke-width="1.2"/></svg></div>
+      <div><div class="t-name">CET-4 / CET-6</div><div class="t-desc" data-i18n="a5_desc">大学英语四六级</div></div>
+    </div>
+  </div>
+
+  <!-- 大字签名：双击有彩蛋 -->
+  <div class="big-word-wrap">
+    <div class="big-word-glow" aria-hidden="true">Michael</div>
+    <div class="big-word" title="双击有彩蛋">Michael</div>
+  </div>
+</section>
+
+<!-- ================= 联系 ================= -->
+<section class="page section" id="page-contact">
+  <div class="sec-title" data-i18n="ct_title">联系</div>
+  <div class="sec-sub" data-i18n="ct_sub">招募我 · 期待并肩作战</div>
+  <div class="contact-grid">
+    <div class="card contact-card">
+      <div class="c-ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="url(#cgPhone)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <defs><linearGradient id="cgPhone" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00c2ff"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs>
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+        </svg>
+      </div>
+      <div><div class="c-lbl" data-i18n="ct_phone">电话</div><div class="c-val">18307929853</div></div>
+      <button class="copy-btn" data-copy="18307929853" onclick="copyContact(this)" aria-label="复制电话" title="复制"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+    </div>
+    <div class="card contact-card ball">
+      <div class="c-ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="url(#cgMail)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <defs><linearGradient id="cgMail" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f97316"/><stop offset="1" stop-color="#e8a33d"/></linearGradient></defs>
+          <rect x="2.5" y="4.5" width="19" height="15" rx="3"/>
+          <path d="m3.5 6.5 8.5 6.5 8.5-6.5"/>
+        </svg>
+      </div>
+      <div><div class="c-lbl" data-i18n="ct_email">邮箱</div><div class="c-val"><a href="mailto:3055334702@qq.com">3055334702@qq.com</a></div></div>
+      <button class="copy-btn" data-copy="3055334702@qq.com" onclick="copyContact(this)" aria-label="复制邮箱" title="复制"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+    </div>
+    <div class="card contact-card">
+      <div class="c-ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="url(#cgPin)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <defs><linearGradient id="cgPin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00c2ff"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs>
+          <path d="M20 10.5c0 5.5-8 11.5-8 11.5s-8-6-8-11.5a8 8 0 0 1 16 0z"/>
+          <circle cx="12" cy="10.5" r="2.8"/>
+        </svg>
+      </div>
+      <div><div class="c-lbl" data-i18n="ct_loc">坐标</div><div class="c-val" data-i18n="ct_loc_val">上海 · 海洋大学</div></div>
+    </div>
+    <div class="card contact-card ball">
+      <div class="c-ico">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <defs><linearGradient id="cgGit" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f97316"/><stop offset="1" stop-color="#e8a33d"/></linearGradient></defs>
+          <path fill="url(#cgGit)" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+        </svg>
+      </div>
+      <div><div class="c-lbl">GitHub</div><div class="c-val"><a href="https://github.com/" target="_blank" rel="noreferrer" id="githubLink" data-i18n="ct_github">链接待补充</a></div></div>
+    </div>
+  </div>
+  <div class="recruit">
+    <h3>🏀 <span data-i18n="ct_cta_t">招募我 · Recruit Me</span></h3>
+    <p data-i18n="ct_cta_p">如果你在找一位能打硬仗的 AI 全栈新秀——把球给我，我来得分。</p>
+    <div class="cta-row" style="margin:0">
+      <a class="btn btn-primary" href="mailto:3055334702@qq.com">
+        <span data-i18n="ct_btn">发邮件给我</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m3 6 9 7 9-7"/></svg>
+      </a>
+      <a class="btn btn-ghost" href="tel:18307929853">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <span data-i18n="ct_btn2">拨打电话</span>
+      </a>
+      <a class="btn btn-resume" href="张海源_简历.pdf" download="张海源_简历.pdf">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+        <span data-i18n="ct_resume">下载简历</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- 大字签名：双击有彩蛋 -->
+  <div class="big-word-wrap">
+    <div class="big-word-glow" aria-hidden="true">Michael</div>
+    <div class="big-word" id="bigWord" title="双击有彩蛋">Michael</div>
+  </div>
+</section>
+
+<footer>
+  © <span id="ftYear">2026</span> <span class="ft-m" data-i18n="ft_m">Michael</span> <span class="ft-z" data-i18n="ft_z">张海源</span> · <span data-i18n="ft_role">AI 全栈开发</span><span id="ftGithubWrap" style="display:none"> · <a id="ftGithub" href="#" target="_blank" rel="noreferrer">GitHub</a></span> · Built with <span class="ball">🏀</span>
+</footer>
+
+<script>
+/* ============================================================
+   待补清单（TODO）
+   ============================================================ */
+// TODO-GITHUB：替换为你的 GitHub 主页链接，例如 'https://github.com/你的用户名'
+const GITHUB_URL = 'https://github.com/james-kobe-curry/Michael.Kai.com';
+
+// TODO-BASKETBALL：填写篮球个人信息（不想展示就把每项留空 ''）
+const BASKETBALL = {
+  pos:   '',  // 位置，如 '控球后卫' / '小前锋'
+  no:    '',  // 球衣号码，如 '23'
+  team:  '',  // 主队/球星，如 '湖人 · 勒布朗'
+  years: ''   // 球龄，如 '球龄 6 年'
+};
+
+/* ============================================================
+   i18n 双语字典
+   ============================================================ */
+const I18N = {
+zh:{
+nav_home:"首页",nav_about:"关于我",nav_skills:"技能",nav_projects:"项目",nav_awards:"荣誉",nav_contact:"联系",
+sb_label:"得分",
+home_badge:"FULL-STACK · AI · BASKETBALL",
+home_iam:"我是",
+home_name:"张海源",
+home_tagline:"前端驱动交互层做“快速传导”，后端编排逻辑流做“阵地攻坚”，再为AI挂载检索增强的实时知识底座，让模型在出手前完成检索-推理-校验的‘快攻三连\u2060击’！",
+home_tagline_em:"——用事实校准每一颗“篮球”，每一次出手都追求空心入网！",
+cta_projects:"查看项目",cta_contact:"联系我",ct_resume:"下载简历",
+shot_hint:"拖动篮球定位",shot_hint2:"双击出手投篮",
+st_projects:"项目",st_awards:"荣誉",st_tech:"技术栈",st_gpa:"GPA",
+about_title:"关于我",about_sub:"球员档案",
+about_obj:"软件开发工程师（前后端）",about_stu:"大二在读",
+about_desc:"计算机科学与技术专业大二在读，拥有扎实的 C/C++ 编程功底与全栈开发能力。2026 年起深入 AI 大模型应用领域，熟练使用 LangChain 框架搭建 RAG 知识库与 AI Agent 智能体系统，具备 Prompt Engineering 实践经验。熟悉 Vue3 + Spring Boot 全栈开发流程，能够独立完成从需求分析到部署上线的完整项目。擅长用 AI 工具（Claude Code、Cursor 等）进行 Vibe Coding 高效开发，具备较强的自主学习与技术跟进能力。",
+edu_title:"教育背景",edu_major:"计算机科学与技术 · 本科",edu_monitor:"副班长",edu_scholar:"多次人民奖学金",
+cert_title:"证书 & 语言",cert_sh3:"上海市计算机三级",cert_note:"大学英语四六级 + 上海市高等学校信息技术水平考试三级（计算机）",
+ball_title:"球员档案",
+skills_title:"技能",skills_sub:"球员属性",radar_cap:"NBA 2K 风格 · 六维属性",
+radar_axes:["编程语言","框架后端","AI 应用","前端工程","算法基础","工程协作"],
+sk_cat1:"编程语言",sk_cat2:"框架 & 后端",sk_cat3:"AI & 工具链",sk_cat4:"证书 & 语言",
+pj_title:"项目",pj_sub:"比赛集锦 · 关键战役",
+p1_title:"AI Agent 智能文档助手（RAG 知识库系统）",
+p1_h1:"基于 LangChain 框架构建 RAG（检索增强生成）管道，实现 PDF/文档的向量化存储与语义检索",
+p1_h2:"集成多种 LLM API（DeepSeek / 通义千问），通过 Agent 架构实现工具调用、多轮对话与上下文管理",
+p1_h3:"使用 ChromaDB 向量数据库存储文档嵌入，结合 Transformers Embedding 模型优化检索精度",
+p1_h4:"前端 Vue3 对话界面 + 后端 FastAPI REST 服务，全程 Claude Code Vibe Coding 高效迭代",
+p2_title:"全栈记账应用 — My Record",
+p2_h1:"独立设计并开发完整的前后端分离记账应用，支持收支记录、分类统计与数据可视化",
+p2_h2:"前端使用 Vue3 + TypeScript，实现响应式布局与组件化开发",
+p2_h3:"后端基于 Spring Boot + MySQL，设计 RESTful API 完成数据增删改查与月度统计",
+p2_h4:"借助 AI 编程助手协作开发，实践 Prompt Engineering 驱动的高效开发流程",
+p3_title:"C/C++ 游戏逻辑模拟 — 碰撞检测与图形交互",
+p3_h1:"使用 C/C++ 实现 2D 游戏底层碰撞检测算法（AABB / 圆形碰撞），理解游戏物理引擎核心逻辑",
+p3_h2:"设计模块化代码结构，实现碰撞响应、事件分发与帧循环渲染管线",
+p3_h3:"为后续与技术人员对接游戏需求打下底层逻辑基础",
+p4_title:"个人网站 — Michael.Kai.com",p4_period:"2026.08 – 至今",
+p4_h1:"纯前端单文件实现（内联 CSS/JS，零框架零依赖），深色科技风 + 篮球主题视觉系统",
+p4_h2:"中英双语 i18n + Hash 路由 + localStorage 语言/计分记忆",
+p4_h3:"手写 SVG：NBA 2K 属性雷达图、拟真篮筐、NBA 风格奖杯图标、球场线条背景",
+p4_h4:"篮球投篮彩蛋：重力抛物线物理、距离衰减命中率、粒子爆炸播报、WebAudio 合成音效、🔥连击与里程碑系统",
+aw_title:"荣誉",aw_sub:"荣誉墙 · 奖杯陈列室",
+a1_name:"蓝桥杯 — 上海赛区 C/C++ 组 省赛二等奖",a1_desc:"蓝桥杯全国软件和信息技术专业人才大赛",
+a2_name:"蓝桥杯 — 上海赛区 C/C++ 组 省赛三等奖",a2_desc:"蓝桥杯全国软件和信息技术专业人才大赛",
+a3_name:"人民奖学金 · 二等奖",a3c_name:"人民奖学金 · 三等奖",a3_desc:"上海海洋大学 · 学业表现持续优秀",
+a4_name:"上海市计算机三级证书",a4_desc:"上海市高等学校信息技术水平考试 · 三级（计算机）",
+a5_desc:"大学英语四六级",
+ct_title:"联系",ct_sub:"招募我 · 期待并肩作战",
+ct_phone:"电话",ct_email:"邮箱",ct_loc:"坐标",ct_loc_val:"上海 · 海洋大学",ct_github:"链接待补充",
+ct_cta_t:"招募我 · Recruit Me",
+ct_cta_p:"如果你在找一位能打硬仗的 AI 全栈新秀——把球给我，我来得分。",
+ct_btn:"发邮件给我",ct_btn2:"拨打电话",copied:"已复制 ✓",
+ft_m:"Michael",ft_z:"张海源",ft_role:"AI 全栈开发"
+},
+en:{
+nav_home:"Home",nav_about:"About",nav_skills:"Skills",nav_projects:"Projects",nav_awards:"Awards",nav_contact:"Contact",
+sb_label:"Score",
+home_badge:"FULL-STACK · AI · BASKETBALL",
+home_iam:"I'm",
+home_name:"Michael",
+home_tagline:"The frontend runs the interaction layer as a fast break, the backend orchestrates logic flows to attack the paint, and AI rides on a retrieval-augmented real-time knowledge base, completing the retrieve → reason → verify 'fast-break triple' before every shot!",
+home_tagline_em:"— Every attempt calibrated by facts, every release aimed for nothing but net!",
+cta_projects:"View Projects",cta_contact:"Contact Me",ct_resume:"Download Resume",
+shot_hint:"Drag to aim",shot_hint2:"double-click to shoot",
+st_projects:"Projects",st_awards:"Awards",st_tech:"Tech Stack",st_gpa:"GPA",
+about_title:"About",about_sub:"Player Profile",
+about_obj:"Software Engineer (Frontend & Backend)",about_stu:"Sophomore",
+about_desc:"Sophomore majoring in Computer Science with solid C/C++ fundamentals and full-stack development capability. Since 2026 I've gone deep into LLM applications — building RAG knowledge bases and AI Agent systems with LangChain, with hands-on Prompt Engineering experience. Proficient in the Vue3 + Spring Boot full-stack workflow, able to independently deliver complete projects from requirements analysis to deployment. Skilled in vibe coding with AI tools (Claude Code, Cursor, etc.), with strong self-learning and tech-following ability.",
+edu_title:"Education",edu_major:"Computer Science · Bachelor",edu_monitor:"Class Vice Monitor",edu_scholar:"People's Scholarship × multiple",
+cert_title:"Certificates & Languages",cert_sh3:"Shanghai Computer Rank 3",cert_note:"CET-4/6 + Shanghai Higher Education IT Proficiency Exam, Level 3 (Computer)",
+ball_title:"Player Profile",
+skills_title:"Skills",skills_sub:"Player Attributes",radar_cap:"NBA 2K Style · Six Attributes",
+radar_axes:["Languages","Backend","AI Apps","Frontend","Algorithms","Teamwork"],
+sk_cat1:"Programming Languages",sk_cat2:"Frameworks & Backend",sk_cat3:"AI & Toolchain",sk_cat4:"Certificates & Languages",
+pj_title:"Projects",pj_sub:"Game Log · Key Battles",
+p1_title:"AI Agent Document Assistant (RAG Knowledge Base)",
+p1_h1:"Built a RAG (retrieval-augmented generation) pipeline with LangChain: PDF/document vector storage and semantic retrieval",
+p1_h2:"Integrated multiple LLM APIs (DeepSeek / Qwen) with an Agent architecture for tool calling, multi-turn dialogue and context management",
+p1_h3:"Stored document embeddings in ChromaDB, tuned retrieval precision with Transformers embedding models",
+p1_h4:"Vue3 chat frontend + FastAPI REST backend, iterated fast with Claude Code vibe coding",
+p2_title:"Full-Stack Expense Tracker — My Record",
+p2_h1:"Independently designed and built a complete frontend-backend separated expense tracker with income/expense records, category stats and data visualization",
+p2_h2:"Vue3 + TypeScript frontend with responsive layout and component-based development",
+p2_h3:"Spring Boot + MySQL backend with RESTful APIs for CRUD and monthly statistics",
+p2_h4:"Collaborated with AI coding assistants, practicing Prompt Engineering-driven efficient development",
+p3_title:"C/C++ Game Logic Simulation — Collision Detection & Graphics",
+p3_h1:"Implemented 2D game collision detection algorithms (AABB / circle) in C/C++, understanding core game physics engine logic",
+p3_h2:"Designed modular code structure: collision response, event dispatch and frame-loop rendering pipeline",
+p3_h3:"Built the low-level foundation for future collaboration on game requirements",
+p4_title:"Personal Website — Michael.Kai.com",p4_period:"2026.08 – Present",
+p4_h1:"Pure frontend single-file build (inline CSS/JS, zero framework & dependencies), dark tech style with a basketball-themed visual system",
+p4_h2:"Bilingual i18n (zh/en) + hash routing + localStorage memory for language & score",
+p4_h3:"Hand-drawn SVG: NBA 2K attribute radar chart, realistic hoop, NBA-style trophy icons, court-line background",
+p4_h4:"Basketball shooting easter egg: gravity parabola physics, distance-based hit-rate decay, particle burst callouts, WebAudio synthesized SFX, streak & milestone system",
+aw_title:"Awards",aw_sub:"Trophy Room",
+a1_name:"Blue Bridge Cup — Shanghai, C/C++ Group, Provincial 2nd Prize",a1_desc:"Blue Bridge Cup National Software & IT Talent Competition",
+a2_name:"Blue Bridge Cup — Shanghai, C/C++ Group, Provincial 3rd Prize",a2_desc:"Blue Bridge Cup National Software & IT Talent Competition",
+a3_name:"People's Scholarship · 2nd Prize",a3c_name:"People's Scholarship · 3rd Prize",a3_desc:"Shanghai Ocean University · consistent academic excellence",
+a4_name:"Shanghai Computer Rank 3 Certificate",a4_desc:"Shanghai Higher Education IT Proficiency Exam · Level 3 (Computer)",
+a5_desc:"College English Test Band 4 & 6",
+ct_title:"Contact",ct_sub:"Recruit Me · Let's hit the court",
+ct_phone:"Phone",ct_email:"Email",ct_loc:"Location",ct_loc_val:"Shanghai · SHOU",ct_github:"Link coming soon",
+ct_cta_t:"Recruit Me",
+ct_cta_p:"Looking for a battle-ready AI full-stack rookie? Pass me the ball — I'll score.",
+ct_btn:"Email Me",ct_btn2:"Call Me",copied:"Copied ✓",
+ft_m:"Michael",ft_z:"Zhang",ft_role:"AI Full-Stack Dev"
+}
+};
+
+let curLang = 'zh';
+
+/* ============================================================
+   语言切换（localStorage 记忆上次选择）
+   ============================================================ */
+function applyTexts(){
+  const d = I18N[curLang];
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    const k = el.getAttribute('data-i18n');
+    if (d[k]) el.innerHTML = d[k];
+  });
+  document.getElementById('heroName').textContent = d.home_name;
+  document.title = curLang === 'zh' ? 'Michael · AI 全栈开发' : 'Michael · AI Full-Stack Dev';
+  document.documentElement.lang = curLang === 'zh' ? 'zh-CN' : 'en';
+}
+function toggleLang(){
+  curLang = curLang === 'zh' ? 'en' : 'zh';
+  try { localStorage.setItem('mk_lang', curLang); } catch(e){}
+  document.getElementById('langBtn').textContent = curLang === 'zh' ? 'EN' : '中';
+  applyTexts();
+  renderStats();
+  renderRadar();
+  typeTagline();
+}
+
+/* ============================================================
+   板块切换（Hash 路由：刷新不丢页面、可分享、前进后退可用）
+   ============================================================ */
+const PAGES = ['home','about','skills','projects','awards','contact'];
+function applyPage(name){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.nav-links a').forEach(l => l.classList.toggle('active', l.dataset.page === name));
+  moveNavIndicator();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function showPage(name){
+  applyPage(name);
+  try {
+    const h = '#' + name;
+    if (location.hash !== h) history.pushState(null, '', h);
+  } catch(e){}
+}
+window.addEventListener('hashchange', function(){
+  const n = location.hash.replace('#', '') || 'home';
+  if (PAGES.indexOf(n) !== -1) applyPage(n);
+});
+/* 导航滑动指示器：橙色短横线滑到当前 Tab 下 */
+function moveNavIndicator(){
+  const a = document.querySelector('.nav-links a.active');
+  const ind = document.getElementById('navInd');
+  if (!a || !ind) return;
+  const r = a.getBoundingClientRect();
+  ind.style.left = r.left + 'px';
+  ind.style.width = r.width + 'px';
+}
+window.addEventListener('resize', moveNavIndicator);
+
+/* ============================================================
+   打字机 tagline
+   ============================================================ */
+function typeTagline(){
+  const el = document.getElementById('taglineText');
+  const main = I18N[curLang].home_tagline;
+  const em = I18N[curLang].home_tagline_em || '';
+  el.innerHTML = '<span id="tlMain"></span><br><span class="tl-em" id="tlEm"></span>';
+  const mainEl = document.getElementById('tlMain');
+  const emEl = document.getElementById('tlEm');
+  /* 打字时光标显示，打完自动淡出 */
+  const cursor = document.querySelector('.typewriter-cursor');
+  if (cursor){ cursor.style.transition = 'none'; cursor.style.opacity = '1'; }
+  const words = main.split(/(?<=[。！，、\s])/);
+  let i = 0, j = 0;
+  const t = setInterval(() => {
+    if (i < words.length){ mainEl.textContent += words[i++]; return; }
+    if (j < em.length){ emEl.textContent += em[j++]; return; }
+    clearInterval(t);
+    if (cursor){ cursor.style.transition = 'opacity .4s'; cursor.style.opacity = '0'; }
+  }, 38);
+}
+
+/* ============================================================
+   计分板统计 count-up
+   ============================================================ */
+function countUp(){
+  document.querySelectorAll('.stat .num').forEach(el => {
+    if (el.dataset.done) return;
+    el.dataset.done = '1';
+    const target = parseFloat(el.dataset.count);
+    const dec = parseInt(el.dataset.dec || '0');
+    const suffix = el.dataset.suffix || '';
+    const dur = 1100, t0 = performance.now();
+    function frame(t){
+      const p = Math.min((t - t0) / dur, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = (target * eased).toFixed(dec) + suffix;
+      if (p < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  });
+}
+
+/* ============================================================
+   2K 属性雷达图（手写 SVG）
+   ============================================================ */
+const RADAR_VALUES = [90, 85, 88, 82, 80, 78]; // 编程语言/框架后端/AI应用/前端工程/算法基础/工程协作
+function renderRadar(){
+  const svg = document.getElementById('radar');
+  const W = 340, H = 340, cx = 170, cy = 170, R = 108, N = 6;
+  const labels = I18N[curLang].radar_axes;
+  let html = '';
+  // 刻度环
+  for (let r of [R/3, R*2/3, R]){
+    html += `<polygon points="${poly(cx,cy,r,N)}" fill="none" stroke="rgba(56,189,248,.14)" stroke-width="1"/>`;
+  }
+  // 轴线
+  for (let i = 0; i < N; i++){
+    const [x,y] = pt(cx,cy,R,i,N);
+    html += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(56,189,248,.12)" stroke-width="1"/>`;
+  }
+  // 数据多边形
+  const pts = RADAR_VALUES.map((v,i) => pt(cx,cy,R*v/100,i,N)).map(p=>p.join(',')).join(' ');
+  html += `<polygon points="${pts}" fill="rgba(249,115,22,.28)" stroke="#f97316" stroke-width="2.2" stroke-linejoin="round"/>`;
+  // 数据点 + 悬停热区
+  RADAR_VALUES.forEach((v,i) => {
+    const [x,y] = pt(cx,cy,R*v/100,i,N);
+    html += `<circle class="radar-pt" data-i="${i}" cx="${x}" cy="${y}" r="3.2" fill="#f97316"/>`;
+    html += `<circle class="radar-hover" data-i="${i}" cx="${x}" cy="${y}" r="17" fill="transparent"/>`;
+  });
+  // 标签
+  for (let i = 0; i < N; i++){
+    const [x,y] = pt(cx,cy,R+26,i,N);
+    const anchor = Math.abs(x-cx) < 6 ? 'middle' : x > cx ? 'start' : 'end';
+    html += `<text x="${x}" y="${y+4}" text-anchor="${anchor}" font-size="12" fill="#7c8aa0">${labels[i]}</text>`;
+  }
+  // 中心数值
+  const avg = Math.round(RADAR_VALUES.reduce((a,b)=>a+b,0)/N);
+  html += `<text x="${cx}" y="${cy-6}" text-anchor="middle" font-family="Consolas,monospace" font-size="26" font-weight="900" fill="#f97316">${avg}</text>`;
+  html += `<text x="${cx}" y="${cy+16}" text-anchor="middle" font-size="10" fill="#7c8aa0" letter-spacing="2">${curLang==='zh'?'综合评分':'OVERALL'}</text>`;
+  svg.innerHTML = html;
+  /* 悬停显示具体属性值 */
+  svg.querySelectorAll('.radar-hover').forEach(function(c){
+    c.addEventListener('mouseenter', showRadarTip);
+    c.addEventListener('mouseleave', hideRadarTip);
+  });
+}
+
+function showRadarTip(){
+  const i = parseInt(this.dataset.i, 10);
+  const tip = document.getElementById('radarTip');
+  tip.innerHTML = '<b>' + I18N[curLang].radar_axes[i] + '</b>' + RADAR_VALUES[i];
+  tip.classList.add('show');
+  const box = document.getElementById('radarBox').getBoundingClientRect();
+  const r = this.getBoundingClientRect();
+  let x = r.left - box.left + r.width / 2 - tip.offsetWidth / 2;
+  let y = r.top - box.top - tip.offsetHeight - 12;
+  x = Math.max(8, Math.min(box.width - tip.offsetWidth - 8, x));
+  if (y < 8) y = r.top - box.top + r.height + 12;
+  tip.style.left = x + 'px';
+  tip.style.top = y + 'px';
+  document.querySelectorAll('#radar .radar-pt').forEach(function(p,k){
+    p.classList.toggle('on', k === i);
+  });
+}
+function hideRadarTip(){
+  document.getElementById('radarTip').classList.remove('show');
+  document.querySelectorAll('#radar .radar-pt.on').forEach(function(p){ p.classList.remove('on'); });
+}
+function pt(cx,cy,r,i,n){
+  const a = -Math.PI/2 + i*2*Math.PI/n;
+  return [cx + r*Math.cos(a), cy + r*Math.sin(a)];
+}
+function poly(cx,cy,r,n){
+  return Array.from({length:n},(_,i)=>pt(cx,cy,r,i,n).map(v=>v.toFixed(1)).join(',')).join(' ');
+}
+
+/* ============================================================
+   跑马灯
+   ============================================================ */
+function initMarquee(){
+  const items = ['Vue3','Spring Boot','FastAPI','LangChain','RAG','AI Agent','C/C++','TypeScript','MySQL','Git'];
+  const half = items.map(t=>`<span class="dot">●</span><span>${t}</span>`).join('');
+  document.getElementById('marquee').innerHTML = `<span>${half}</span><span>${half}</span>`;
+}
+
+/* ============================================================
+   篮球彩蛋：拖动定位 + 双击出手
+   · 出手距离 ≥550px 算三分，否则两分（阈值可调：搜索 THREE_DIST）
+   · 命中率随距离线性衰减（斜率×2）：最近 100% → 半程距离即降至 30% 保底
+   · 飞行轨迹为重力抛物线（水平匀速 + 向下重力加速）
+   · 命中：得分 + 篮网晃动；未中：砸框弹出
+   · 动画结束后篮球一律回到初始位置
+   ============================================================ */
+const ballEl = document.getElementById('ball');
+const hoopEl = document.getElementById('hoop');
+const hoopFrontEl = document.getElementById('hoopFront');
+let shooting = false, dragging = false;
+let dragOffX = 0, dragOffY = 0;
+
+/* ============================================================
+   计分统计（localStorage 持久化：刷新不掉分）
+   ============================================================ */
+let stats = { score: 0, streak: 0, made: 0, total: 0, hist: [] };
+try {
+  const s = JSON.parse(localStorage.getItem('mk_stats') || 'null');
+  if (s && typeof s === 'object'){
+    stats.score = parseInt(s.score, 10) || 0;
+    stats.streak = parseInt(s.streak, 10) || 0;
+    stats.made = parseInt(s.made, 10) || 0;
+    stats.total = parseInt(s.total, 10) || 0;
+    stats.hist = Array.isArray(s.hist) ? s.hist.slice(-5) : [];
+  }
+} catch(e){}
+function saveStats(){ localStorage.setItem('mk_stats', JSON.stringify(stats)); }
+function renderStats(){
+  document.getElementById('sbScore').textContent = String(stats.score).padStart(2, '0');
+  const st = document.getElementById('sbStreak');
+  if (stats.streak >= 3){
+    st.textContent = '🔥 ×' + stats.streak;
+    st.classList.remove('pop'); void st.offsetWidth; st.classList.add('pop');
+  } else st.textContent = '';
+  const rate = document.getElementById('sbRate');
+  if (stats.total > 0){
+    rate.style.display = '';
+    rate.textContent = (curLang === 'zh' ? '命中 ' : 'FG ') + stats.made + '/' + stats.total + ' · ' + Math.round(stats.made / stats.total * 100) + '%';
+  } else rate.style.display = 'none';
+  document.getElementById('sbHist').innerHTML = stats.hist.map(function(h){
+    return '<i class="' + (h === 'h' ? 'hit' : 'miss') + '"></i>';
+  }).join('');
+}
+
+/* ============================================================
+   音效（WebAudio 合成，零音频文件；默认静音，🔊 开启）
+   ============================================================ */
+let audioCtx = null, soundOn = false;
+try { soundOn = localStorage.getItem('mk_sound') === '1'; } catch(e){}
+function initAudioCtx(){
+  if (!audioCtx){
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) audioCtx = new AC();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}
+function noiseBuf(){
+  const len = audioCtx.sampleRate * .5;
+  const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  return buf;
+}
+function playBlip(){
+  if (!soundOn || !audioCtx) return;
+  const t = audioCtx.currentTime;
+  const o = audioCtx.createOscillator(); o.type = 'triangle';
+  o.frequency.setValueAtTime(660, t); o.frequency.exponentialRampToValueAtTime(990, t + .09);
+  const g = audioCtx.createGain(); g.gain.setValueAtTime(.001, t); g.gain.exponentialRampToValueAtTime(.12, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + .12);
+  o.connect(g).connect(audioCtx.destination); o.start(t); o.stop(t + .13);
+}
+function playSwoosh(){
+  if (!soundOn || !audioCtx) return;
+  const t = audioCtx.currentTime;
+  const src = audioCtx.createBufferSource(); src.buffer = noiseBuf();
+  const bp = audioCtx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 1.2;
+  bp.frequency.setValueAtTime(2200, t); bp.frequency.exponentialRampToValueAtTime(500, t + .22);
+  const g = audioCtx.createGain(); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.25, t + .04); g.gain.exponentialRampToValueAtTime(.0001, t + .24);
+  src.connect(bp).connect(g).connect(audioCtx.destination); src.start(t); src.stop(t + .26);
+}
+function playClank(){
+  if (!soundOn || !audioCtx) return;
+  const t = audioCtx.currentTime;
+  const o = audioCtx.createOscillator(); o.type = 'square';
+  o.frequency.setValueAtTime(1400, t); o.frequency.exponentialRampToValueAtTime(700, t + .1);
+  const g = audioCtx.createGain(); g.gain.setValueAtTime(.22, t); g.gain.exponentialRampToValueAtTime(.0001, t + .12);
+  o.connect(g).connect(audioCtx.destination); o.start(t); o.stop(t + .14);
+  const src = audioCtx.createBufferSource(); src.buffer = noiseBuf();
+  const hp = audioCtx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 2500;
+  const g2 = audioCtx.createGain(); g2.gain.setValueAtTime(.3, t); g2.gain.exponentialRampToValueAtTime(.0001, t + .08);
+  src.connect(hp).connect(g2).connect(audioCtx.destination); src.start(t); src.stop(t + .1);
+}
+function playSwish(){
+  if (!soundOn || !audioCtx) return;
+  const t = audioCtx.currentTime;
+  const src = audioCtx.createBufferSource(); src.buffer = noiseBuf();
+  const bp = audioCtx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = .9;
+  bp.frequency.setValueAtTime(900, t); bp.frequency.exponentialRampToValueAtTime(3500, t + .28);
+  const g = audioCtx.createGain(); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.22, t + .05); g.gain.exponentialRampToValueAtTime(.0001, t + .3);
+  src.connect(bp).connect(g).connect(audioCtx.destination); src.start(t); src.stop(t + .32);
+}
+function playBuzzer(){
+  if (!soundOn || !audioCtx) return;
+  const t = audioCtx.currentTime;
+  [220, 277].forEach(function(f){
+    const o = audioCtx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f;
+    const g = audioCtx.createGain(); g.gain.setValueAtTime(.16, t); g.gain.exponentialRampToValueAtTime(.0001, t + .7);
+    o.connect(g).connect(audioCtx.destination); o.start(t); o.stop(t + .75);
+  });
+}
+function toggleSound(){
+  soundOn = !soundOn;
+  try { localStorage.setItem('mk_sound', soundOn ? '1' : '0'); } catch(e){}
+  document.getElementById('sndBtn').textContent = soundOn ? '🔊' : '🔇';
+  if (soundOn){ initAudioCtx(); playBlip(); }
+}
+
+/* ---------- 拖动定位 ---------- */
+ballEl.addEventListener('pointerdown', function(e){
+  if (shooting) return;
+  dragging = true;
+  ballEl.classList.add('dragging');
+  ballEl.setPointerCapture(e.pointerId);
+  const r = ballEl.getBoundingClientRect();
+  ballEl.style.position = 'fixed';
+  ballEl.style.left = r.left + 'px';
+  ballEl.style.top = r.top + 'px';
+  ballEl.style.zIndex = '50';
+  dragOffX = e.clientX - r.left;
+  dragOffY = e.clientY - r.top;
+  showAim();
+  updateAim();
+  e.preventDefault();
+});
+ballEl.addEventListener('pointermove', function(e){
+  if (!dragging) return;
+  let x = e.clientX - dragOffX;
+  let y = e.clientY - dragOffY;
+  x = Math.max(8, Math.min(innerWidth - ballEl.offsetWidth - 8, x));
+  y = Math.max(64, Math.min(innerHeight - ballEl.offsetHeight - 8, y));
+  ballEl.style.left = x + 'px';
+  ballEl.style.top = y + 'px';
+  updateAim();
+});
+function endDrag(){
+  dragging = false;
+  ballEl.classList.remove('dragging');
+  ballEl.style.zIndex = '';
+  hideAim();
+}
+ballEl.addEventListener('pointerup', endDrag);
+ballEl.addEventListener('pointercancel', endDrag);
+
+/* ---------- 瞄准辅助虚线（拖动时显示：重力抛物线弧 + 实时命中率） ---------- */
+function ballPoint(){
+  const b = ballEl.getBoundingClientRect();
+  return { x: b.left + b.width / 2, y: b.top + b.height / 2 };
+}
+function showAim(){ document.getElementById('aimSvg').classList.add('show'); }
+function hideAim(){
+  document.getElementById('aimSvg').classList.remove('show');
+  const tip = document.getElementById('aimTip');
+  tip.classList.remove('show', 't3');
+}
+function updateAim(){
+  const b = ballPoint();
+  const h = hoopEl.getBoundingClientRect();
+  const sx = b.x, sy = b.y;
+  /* 落点与 shoot() 命中目标一致（篮圈中心略下方） */
+  const tx = h.left + h.width * 0.5;
+  const ty = h.top + h.height * 0.47 + h.height * 0.05 * 0.4;
+  const dist = Math.hypot(tx - sx, ty - sy);
+  /* 虚线弧 = 真实弹道抛物线（二次贝塞尔控制点精确表示重力轨迹） */
+  const T = flightTime(dist);
+  const cx = (sx + tx) / 2;
+  const cy = (sy + ty) / 2 - 0.25 * GRAVITY * T * T;
+  document.getElementById('aimLine').setAttribute('d',
+    'M ' + sx + ' ' + sy + ' Q ' + cx + ' ' + cy + ' ' + tx + ' ' + ty);
+  const isThree = dist >= THREE_DIST;
+  const tip = document.getElementById('aimTip');
+  const pct = Math.round(hitPct(dist) * 100);
+  tip.textContent = (isThree ? '3' : '2') + (curLang === 'zh' ? '分' : ' PTS') + ' · ' + pct + '%';
+  tip.classList.add('show');
+  tip.classList.toggle('t3', isThree);
+  /* 提示浮在弧顶上方 */
+  const apexY = 0.5 * cy + 0.25 * (sy + ty);
+  let mx = (sx + tx) / 2, my = apexY - 32;
+  mx = Math.max(70, Math.min(innerWidth - 70, mx));
+  my = Math.max(70, Math.min(innerHeight - 40, my));
+  tip.style.left = mx + 'px';
+  tip.style.top = my + 'px';
+}
+
+/* ---------- 双击出手（键盘 Enter/空格 也可） ---------- */
+ballEl.addEventListener('dblclick', shoot);
+ballEl.addEventListener('keydown', function(e){
+  if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); shoot(); }
+});
+
+/* 里程碑播报（得分跨越阈值时加播特殊文案） */
+const MILESTONES = [
+  [10,  {zh:'得分上双！', en:'DOUBLE DIGITS!'}],
+  [20,  {zh:'拿下20分！', en:'20 POINTS!'}],
+  [30,  {zh:'火力全开！', en:'ON FIRE!'}],
+  [40,  {zh:'逼近半百！', en:'APPROACHING 50!'}],
+  [50,  {zh:'半百先生！', en:'HALF A HUNDRED!'}],
+  [75,  {zh:'狂砍75分！', en:'75 BURGER!'}],
+  [100, {zh:'百分先生！', en:'CENTURY CLUB!'}]
+];
+
+/* 命中率：随出手距离线性衰减，衰减斜率×2（最近 100% → 半程距离即降至 30% 保底） */
+function hitPct(dist){
+  const maxDist = Math.hypot(innerWidth, innerHeight);   // 视口对角线 = 最远可出手距离
+  return Math.max(0.3, 1 - 1.4 * dist / maxDist);
+}
+
+/* 重力与飞行时间（投篮与瞄准虚线共用同一套弹道参数） */
+const GRAVITY = 1800;                                        // px/s²
+const THREE_DIST = 550;                                      // 三分线阈值 px（想调远/近只改这里）
+function flightTime(dist){
+  return Math.min(Math.max(0.55 + dist * 0.0008, 0.6), 1.1); // 秒
+}
+
+function shoot(){
+  if (shooting) return;
+  shooting = true;
+  hideAim();
+  if (soundOn){ initAudioCtx(); playSwoosh(); }
+  const b = ballEl.getBoundingClientRect();
+  const h = hoopEl.getBoundingClientRect();
+  const sx = b.left + b.width / 2, sy = b.top + b.height / 2;
+  const rimCx = h.left + h.width * 0.5, rimCy = h.top + h.height * 0.47;
+  const dist = Math.hypot(rimCx - sx, rimCy - sy);
+  const isThree = dist >= THREE_DIST;              // 出手距离 ≥ 阈值记三分
+  const pts = isThree ? 3 : 2;
+  const make = Math.random() < hitPct(dist);      // 命中率随距离线性衰减
+
+  ballEl.classList.add('shooting');
+  ballEl.style.position = 'fixed';
+  ballEl.style.zIndex = '60';
+  ballEl.style.left = b.left + 'px';
+  ballEl.style.top = b.top + 'px';
+  ballEl.style.opacity = '1';
+
+  /* 落点：命中 = 篮圈中心；未中 = 篮圈前缘随机点（砸框） */
+  const rimRx = h.width * 0.46, rimRy = h.height * 0.05;
+  let tx, ty;
+  if (make){ tx = rimCx; ty = rimCy + rimRy * 0.4; }
+  else {
+    const a = (Math.random() * 0.8 + 0.1) * Math.PI;   // 前缘 0.1π~0.9π
+    tx = rimCx + rimRx * Math.cos(a) * 0.95;
+    ty = rimCy + rimRy * Math.sin(a) * 0.95;
+  }
+  /* 重力抛物线：水平匀速 + 向下重力加速，形成自然投篮弧度 */
+  const T = flightTime(dist);                            // 飞行时间（秒）随距离增加
+  const g = GRAVITY;                                     // 重力加速度 px/s²
+  const vx = (tx - sx) / T;
+  const vy0 = (ty - sy) / T - 0.5 * g * T;               // 初速度（向上分量）
+  const dur = T * 1000, t0 = performance.now();
+  function frame(t){
+    const p = Math.min((t - t0) / dur, 1);
+    const tt = p * T;                                    // 已飞行秒数
+    const x = sx + vx * tt;
+    const y = sy + vy0 * tt + 0.5 * g * tt * tt;
+    ballEl.style.left = (x - ballEl.offsetWidth / 2) + 'px';
+    ballEl.style.top  = (y - ballEl.offsetHeight / 2) + 'px';
+    const sc = 1 - 0.35 * Math.sin(Math.PI * p);        // 远端轻微缩小（透视）
+    ballEl.style.transform = 'scale(' + sc + ') rotate(' + (-360 * p * 1.8) + 'deg)';  // 后旋
+    if (p < 1) requestAnimationFrame(frame);
+    else if (make) startSwish(pts, isThree);
+    else startBounce(isThree);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* 命中：球穿网坠落（加速下坠 + 缩小透视 + 淡出） */
+function startSwish(pts, isThree){
+  /* 计分统计 + 持久化 */
+  const prev = stats.score;
+  stats.score += pts;
+  stats.streak++;
+  stats.made++;
+  stats.total++;
+  stats.hist.push('h');
+  if (stats.hist.length > 5) stats.hist.shift();
+  saveStats();
+  renderStats();
+  const sb = document.getElementById('sbScore');
+  sb.classList.remove('pop'); void sb.offsetWidth; sb.classList.add('pop');
+  /* +2/+3 飘字徽章（+3 金色，+2 橙色） */
+  const sp = document.getElementById('sbPlus');
+  sp.textContent = '+' + pts;
+  sp.style.color = pts === 3 ? '#e8a33d' : '#f97316';
+  sp.style.borderColor = pts === 3 ? 'rgba(232,163,61,.55)' : 'rgba(249,115,22,.5)';
+  sp.style.boxShadow = pts === 3 ? '0 0 16px rgba(232,163,61,.4)' : '0 0 14px rgba(249,115,22,.35)';
+  sp.classList.remove('show'); void sp.offsetWidth; sp.classList.add('show');
+  hoopEl.classList.add('swing');
+  hoopFrontEl.classList.add('swing', 'swish');
+  showCallout(isThree ? 'made3' : 'made2');
+  if (soundOn){ initAudioCtx(); playSwish(); if (isThree) setTimeout(playBuzzer, 120); }
+
+  /* 里程碑播报：跨越 10/20/30/40/50/75/100 分时加播特殊文案 */
+  let holdMs = 900;
+  const ms = MILESTONES.find(function(m){ return prev < m[0] && stats.score >= m[0]; });
+  if (ms){
+    holdMs = 2600;
+    setTimeout(function(){
+      showCallout('made3', ms[1][curLang]);
+      if (soundOn) playBuzzer();
+    }, 1250);
+  }
+
+  /* 入网瞬间：把「篮圈+网」抬到球之上，球从网后穿过（篮板保持在球后面） */
+  const hr = hoopFrontEl.getBoundingClientRect();
+  hoopFrontEl.style.position = 'fixed';
+  hoopFrontEl.style.zIndex = '61';
+  hoopFrontEl.style.left = hr.left + 'px';
+  hoopFrontEl.style.top = hr.top + 'px';
+
+  const h = hoopEl.getBoundingClientRect();
+  const x0 = h.left + h.width / 2;
+  const y0 = h.top + h.height * 0.47;
+  const y1 = h.top + h.height * 0.88;                 // 网底
+  const dur = 400, t0 = performance.now();
+  function fall(t){
+    const p = Math.min((t - t0) / dur, 1);
+    const e = p * p;                                  // 重力加速
+    const y = y0 + (y1 - y0) * e;
+    ballEl.style.left = (x0 - ballEl.offsetWidth / 2) + 'px';
+    ballEl.style.top  = (y - ballEl.offsetHeight / 2) + 'px';
+    const sc = 1 - 0.45 * p;
+    ballEl.style.transform = 'scale(' + sc + ') rotate(' + (-360 * 1.8 - 200 * p) + 'deg)';
+    ballEl.style.opacity = p > 0.55 ? String(1 - (p - 0.55) / 0.45) : '1';
+    if (p < 1) requestAnimationFrame(fall);
+    else resetAfterShot(holdMs);
+  }
+  requestAnimationFrame(fall);
+}
+
+/* 未中：砸筐弹飞（随机方向 + 重力抛物线） */
+function startBounce(isThree){
+  stats.streak = 0;
+  stats.total++;
+  stats.hist.push('m');
+  if (stats.hist.length > 5) stats.hist.shift();
+  saveStats();
+  renderStats();
+  if (soundOn) playClank();
+  hoopFrontEl.classList.add('rattle');
+  showCallout('missed');
+
+  const r = ballEl.getBoundingClientRect();
+  const x0 = r.left + r.width / 2, y0 = r.top + r.height / 2;
+  const h = hoopEl.getBoundingClientRect();
+  const rimCx = h.left + h.width / 2;
+  const vx = (x0 - rimCx) * 1.6 + (Math.random() < .5 ? -1 : 1) * (20 + Math.random() * 50);
+  const vy = -(70 + Math.random() * 90);
+  const g = 520, dur = 750, t0 = performance.now();
+  function bnc(t){
+    const p = Math.min((t - t0) / dur, 1);
+    const tt = p * dur / 1000;
+    const x = x0 + vx * tt;
+    const y = y0 + vy * tt + 0.5 * g * tt * tt;
+    ballEl.style.left = (x - ballEl.offsetWidth / 2) + 'px';
+    ballEl.style.top  = (y - ballEl.offsetHeight / 2) + 'px';
+    ballEl.style.transform = 'rotate(' + (-360 * 1.8 - 400 * p) + 'deg)';
+    ballEl.style.opacity = p > 0.6 ? String(1 - (p - 0.6) / 0.4) : '1';
+    if (p < 1) requestAnimationFrame(bnc);
+    else resetAfterShot();
+  }
+  requestAnimationFrame(bnc);
+}
+
+/* ============================================================
+   爆炸播报特效：MISS! / SCORE! / THREE POINTS!
+   ============================================================ */
+function buildBurst(){
+  const pts = [];
+  const cx = 50, cy = 50, n = 12, r1 = 48, r2 = 26;
+  for (let i = 0; i < n * 2; i++){
+    const r = i % 2 === 0 ? r1 : r2;
+    const a = i * Math.PI / n - Math.PI / 2;
+    pts.push((cx + r * Math.cos(a)).toFixed(1) + ',' + (cy + r * Math.sin(a)).toFixed(1));
+  }
+  document.getElementById('burstPoly').setAttribute('points', pts.join(' '));
+}
+function showCallout(type, customText){
+  const co = document.getElementById('shotCallout');
+  const txt = document.getElementById('calloutText');
+  co.className = 'shot-callout ' + type + ' show';
+  txt.textContent = customText || (type === 'made3' ? 'THREE POINTS!' : type === 'made2' ? 'SCORE!' : 'MISS!');
+  /* 定位到篮筐右侧（贴紧篮筐，放不下就移到左侧） */
+  const h = hoopEl.getBoundingClientRect();
+  const w = 200, hh = 100;
+  let x = h.right - 10 + w / 2;
+  if (x + w / 2 > innerWidth - 8) x = h.left + 10 - w / 2;
+  let y = h.top + h.height * 0.45;
+  y = Math.max(hh / 2 + 60, Math.min(innerHeight - hh / 2 - 8, y));
+  co.style.left = x + 'px';
+  co.style.top = y + 'px';
+  burstParticles(type);
+  if (type === 'made3'){
+    const f = document.getElementById('flash');
+    f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
+  }
+}
+function burstParticles(type){
+  const co = document.getElementById('shotCallout');
+  const r = co.getBoundingClientRect();
+  const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  const colors = type === 'missed' ? ['#f87171','#fb923c','#fca5a5','#ffffff']
+               : type === 'made3' ? ['#fbbf24','#f97316','#a855f7','#fde68a','#ffffff']
+               : ['#22d3ee','#38bdf8','#a855f7','#e2e8f0','#ffffff'];
+  const count = type === 'made3' ? 42 : 26;
+  for (let i = 0; i < count; i++){
+    const p = document.createElement('div');
+    p.className = 'particle' + (Math.random() < .2 ? ' sq' : '');
+    const s = 3 + Math.random() * 5;
+    p.style.width = s + 'px'; p.style.height = s + 'px';
+    const c = colors[i % colors.length];
+    p.style.background = c; p.style.color = c;
+    p.style.left = cx + 'px'; p.style.top = cy + 'px';
+    document.body.appendChild(p);
+    const ang = Math.random() * Math.PI * 2;
+    const spd = 50 + Math.random() * 170;
+    const vx = Math.cos(ang) * spd, vy = Math.sin(ang) * spd - 45;
+    const t0 = performance.now();
+    (function fly(t){
+      const dt = (t - t0) / 1000;
+      if (dt > 0.8){ p.remove(); return; }
+      p.style.left = (cx + vx * dt) + 'px';
+      p.style.top = (cy + vy * dt + 180 * dt * dt) + 'px';
+      p.style.opacity = String(1 - dt / 0.8);
+      requestAnimationFrame(fly);
+    })(t0);
+  }
+}
+
+/* 复位：球与篮筐回到初始状态（特效多停留一会再收起） */
+let calloutTimer = null;
+function resetAfterShot(hold){
+  ballEl.style.transition = 'none';
+  ballEl.style.opacity = '1';
+  ballEl.style.cssText = '';
+  ballEl.className = '';
+  hoopEl.style.cssText = '';
+  hoopEl.classList.remove('swing');
+  hoopFrontEl.style.cssText = '';
+  hoopFrontEl.classList.remove('swing', 'rattle', 'swish');
+  shooting = false;
+  clearTimeout(calloutTimer);
+  calloutTimer = setTimeout(function(){
+    document.getElementById('shotCallout').className = 'shot-callout';
+  }, hold || 900);
+}
+
+/* ============================================================
+   头像兜底：avatar.png → avatar.jpg → 首字母占位
+   ============================================================ */
+let avatarTries = 0;
+function avatarFallback(){
+  avatarTries++;
+  const img = document.getElementById('avatarImg');
+  if (avatarTries === 1){ img.src = 'avatar.jpg'; return; }
+  if (avatarTries === 2){ img.src = 'avatar.jpeg'; return; }
+  // 全部失败 → 首字母占位
+  const wrap = document.getElementById('avatarWrap');
+  wrap.innerHTML = '<div class="avatar-fallback"><div class="mono">M</div><div class="tip">放入 avatar.png 即可显示头像</div></div>';
+}
+
+/* ============================================================
+   篮球档案卡（填写 TODO-BASKETBALL 后自动显示）
+   ============================================================ */
+(function initBallCard(){
+  const map = [['bpPos','pos','🏀 '],['bpNo','no','#'],['bpTeam','team','★ '],['bpYears','years','⏱ ']];
+  let filled = 0;
+  map.forEach(([id,key,prefix]) => {
+    const v = BASKETBALL[key];
+    if (v){ document.getElementById(id).textContent = prefix + v; filled++; }
+    else document.getElementById(id).remove();
+  });
+  if (filled > 0) document.getElementById('ballCard').style.display = '';
+})();
+
+/* ============================================================
+   GitHub 链接
+   ============================================================ */
+(function initGithub(){
+  const a = document.getElementById('githubLink');
+  if (GITHUB_URL && GITHUB_URL !== 'https://github.com/'){
+    a.href = GITHUB_URL;
+    a.textContent = '@' + GITHUB_URL.split('github.com/')[1].split('/')[0];
+    const fg = document.getElementById('ftGithub');
+    fg.href = GITHUB_URL;
+    document.getElementById('ftGithubWrap').style.display = '';
+  }
+})();
+/* 页脚年份自动更新 */
+document.getElementById('ftYear').textContent = new Date().getFullYear();
+
+/* ============================================================
+   一键复制 + Toast
+   ============================================================ */
+let toastTimer = null;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 1600);
+}
+function copyContact(btn){
+  const val = btn.getAttribute('data-copy');
+  const done = function(){ showToast(I18N[curLang].copied); };
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(val).then(done).catch(function(){ legacyCopy(val, done); });
+  } else legacyCopy(val, done);
+}
+function legacyCopy(val, done){
+  const ta = document.createElement('textarea');
+  ta.value = val;
+  ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); done(); } catch(e){}
+  ta.remove();
+}
+
+/* ============================================================
+   阅读进度条 + 回到顶部
+   ============================================================ */
+const readBar = document.getElementById('readBar');
+const toTopBtn = document.getElementById('toTop');
+let scrollTick = false;
+function updateScrollUI(){
+  const max = document.documentElement.scrollHeight - innerHeight;
+  readBar.style.width = (max > 0 ? scrollY / max * 100 : 0) + '%';
+  toTopBtn.classList.toggle('show', scrollY > 200);
+}
+window.addEventListener('scroll', function(){
+  if (scrollTick) return;
+  scrollTick = true;
+  requestAnimationFrame(function(){ scrollTick = false; updateScrollUI(); });
+}, { passive: true });
+toTopBtn.addEventListener('click', function(){ window.scrollTo({ top: 0, behavior: 'smooth' }); });
+
+/* ============================================================
+   卡片 3D 悬停（项目 + 奖杯）
+   ============================================================ */
+document.querySelectorAll('.tilt').forEach(function(card){
+  card.addEventListener('mouseenter', function(){ card.style.transition = 'transform .12s ease, opacity .6s ease'; });
+  card.addEventListener('mousemove', function(e){
+    const r = card.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - .5;
+    const py = (e.clientY - r.top) / r.height - .5;
+    card.style.transform = 'perspective(900px) rotateX(' + (-py * 7).toFixed(2) + 'deg) rotateY(' + (px * 7).toFixed(2) + 'deg) translateY(-2px)';
+  });
+  card.addEventListener('mouseleave', function(){
+    card.style.transition = 'opacity .6s ease, transform .5s ease';
+    card.style.transform = '';
+  });
+});
+
+/* ============================================================
+   隐藏彩蛋：连按 M V P 触发全场庆祝
+   ============================================================ */
+let mvpBuf = '', mvpLast = 0;
+function celebrateMVP(){
+  const now = Date.now();
+  if (now - mvpLast < 4000) return;
+  mvpLast = now;
+  const f = document.getElementById('flash');
+  f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
+  const banner = document.createElement('div');
+  banner.id = 'mvpBanner';
+  banner.textContent = '🏆 MVP! MVP! MVP! 🏆';
+  document.body.appendChild(banner);
+  const colors = ['#f97316','#e8a33d','#00c2ff','#a855f7','#fbbf24','#ffffff'];
+  for (let i = 0; i < 140; i++){
+    const c = document.createElement('i');
+    c.className = 'confetti';
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.background = colors[i % colors.length];
+    c.style.width = 6 + Math.random() * 8 + 'px';
+    c.style.height = 10 + Math.random() * 12 + 'px';
+    c.style.animationDuration = 1.8 + Math.random() * 1.6 + 's';
+    c.style.animationDelay = Math.random() * .6 + 's';
+    document.body.appendChild(c);
+    setTimeout(function(){ c.remove(); }, 4300);
+  }
+  if (soundOn){ initAudioCtx(); playBuzzer(); }
+  setTimeout(function(){ banner.remove(); }, 2800);
+}
+document.addEventListener('keydown', function(e){
+  if (e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) return;
+  mvpBuf = (mvpBuf + e.key.toLowerCase()).slice(-3);
+  if (mvpBuf === 'mvp') celebrateMVP();
+});
+/* 大字 Michael（荣誉页 + 联系页）：双击触发 MVP 庆祝 */
+document.querySelectorAll('.big-word').forEach(function(el){
+  el.addEventListener('dblclick', celebrateMVP);
+});
+
+/* ============================================================
+   scroll reveal
+   ============================================================ */
+const io = new IntersectionObserver(entries => {
+  entries.forEach(en => {
+    if (en.isIntersecting){
+      en.target.classList.add('seen');
+      en.target.style.opacity = '1';
+      en.target.style.transform = 'translateY(0)';
+      io.unobserve(en.target);
+    }
+  });
+}, { threshold: .12 });
+document.querySelectorAll('.card, .stat, .tl-item').forEach(el => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(22px)';
+  el.style.transition = 'opacity .6s ease, transform .6s ease';
+  io.observe(el);
+});
+/* 计分板数字进入视野时触发滚动 */
+const statIO = new IntersectionObserver(entries => {
+  entries.forEach(en => { if (en.isIntersecting){ countUp(); statIO.disconnect(); } });
+}, { threshold: .3 });
+document.querySelectorAll('.stat .num').forEach(el => statIO.observe(el));
+
+/* ============================================================
+   启动
+   ============================================================ */
+window.addEventListener('DOMContentLoaded', () => {
+  /* 语言记忆：上次选择英文则自动恢复 */
+  try {
+    if (localStorage.getItem('mk_lang') === 'en'){
+      curLang = 'en';
+      document.getElementById('langBtn').textContent = '中';
+      applyTexts();
+    }
+  } catch(e){}
+  /* Hash 路由：打开即落在指定板块 */
+  const h = location.hash.replace('#', '') || 'home';
+  if (PAGES.indexOf(h) !== -1) applyPage(h);
+  else moveNavIndicator();
+  /* 音效开关状态 + 计分板恢复 */
+  document.getElementById('sndBtn').textContent = soundOn ? '🔊' : '🔇';
+  renderStats();
+  updateScrollUI();
+  renderRadar();
+  initMarquee();
+  typeTagline();
+  countUp();
+  buildBurst();
+});
+</script>
+</body>
+</html>
