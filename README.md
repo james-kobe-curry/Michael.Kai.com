@@ -3,6 +3,8 @@
 > **张海源 Michael 的个人网站** — 单文件 · 零依赖 · 纯前端
 > **Michael's personal website** — single-file · zero-dependency · pure frontend
 
+**🌐 线上地址 / Live: https://james-kobe-curry.github.io/Michael.Kai.com/**
+
 深色科技风 + 篮球主题的个人展示站：一键切换的中英双语、可拖拽投篮的完整彩蛋系统、NBA 2K 风格六维雷达图……所有代码都在一个 `index.html` 里，双击即可打开，无需构建、无需服务器。
 
 A dark-tech themed personal portfolio with a basketball twist: bilingual zh/en in one click, a fully playable basketball shooting easter egg, an NBA 2K-style attribute radar… Everything lives in a single `index.html` — double-click to open, no build step, no server required.
@@ -37,7 +39,7 @@ python -m http.server 8765
 # 浏览器访问 http://localhost:8765
 ```
 
-部署到任意静态托管（GitHub Pages / Vercel / Netlify）只需上传整个目录。
+部署到任意静态托管（GitHub Pages / Vercel / Netlify）只需上传整个目录。换云服务器/正式域名等进阶部署方案见 [部署方案.md](部署方案.md)。
 
 ## 📁 文件结构 / Project Structure
 
