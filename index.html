@@ -1291,6 +1291,7 @@ const hoopEl = document.getElementById('hoop');
 const hoopFrontEl = document.getElementById('hoopFront');
 let shooting = false, dragging = false;
 let dragOffX = 0, dragOffY = 0;
+let downX = 0, downY = 0, tapInfo = { t: 0, x: 0, y: 0 };
 
 /* ============================================================
    计分统计（localStorage 持久化：刷新不掉分）
@@ -1410,6 +1411,8 @@ ballEl.addEventListener('pointerdown', function(e){
   ballEl.style.zIndex = '50';
   dragOffX = e.clientX - r.left;
   dragOffY = e.clientY - r.top;
+  downX = e.clientX;
+  downY = e.clientY;
   showAim();
   updateAim();
   e.preventDefault();
@@ -1430,7 +1433,19 @@ function endDrag(){
   ballEl.style.zIndex = '';
   hideAim();
 }
-ballEl.addEventListener('pointerup', endDrag);
+/* 移动端双击投篮：触摸设备不触发 dblclick，用「两次快速轻点」检测 */
+ballEl.addEventListener('pointerup', function(e){
+  endDrag();
+  const moved = Math.hypot(e.clientX - downX, e.clientY - downY);
+  if (moved > 12) return;                              // 是拖动结束，不算轻点
+  const now = Date.now();
+  if (now - tapInfo.t < 350 && Math.hypot(e.clientX - tapInfo.x, e.clientY - tapInfo.y) < 40){
+    tapInfo.t = 0;                                     // 消费本次双击
+    shoot();
+  } else {
+    tapInfo = { t: now, x: e.clientX, y: e.clientY };
+  }
+});
 ballEl.addEventListener('pointercancel', endDrag);
 
 /* ---------- 瞄准辅助虚线（拖动时显示：重力抛物线弧 + 实时命中率） ---------- */
