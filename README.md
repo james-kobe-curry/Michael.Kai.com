@@ -3,7 +3,8 @@
 > **张海源 Michael 的个人网站** — 单文件 · 零依赖 · 纯前端
 > **Michael's personal website** — single-file · zero-dependency · pure frontend
 
-**🌐 线上地址 / Live: https://james-kobe-curry.github.io/Michael.Kai.com/**
+**🌐 线上地址 / Live: https://michael.kai.com/**
+（备用镜像 / Backup mirror: https://james-kobe-curry.github.io/Michael.Kai.com/）
 
 深色科技风 + 篮球主题的个人展示站：一键切换的中英双语、可拖拽投篮的完整彩蛋系统、NBA 2K 风格六维雷达图……所有代码都在一个 `index.html` 里，双击即可打开，无需构建、无需服务器。
 
